@@ -68,7 +68,7 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 .nav-tel{
   display:inline-flex;align-items:center;gap:8px;
   font-size:13px;font-weight:700;letter-spacing:.06em;
-  padding:10px 18px;border-radius:999px;
+  padding:10px 18px;border-radius:999px;white-space:nowrap;
   background:var(--bianco);color:var(--blu);
   transition:background .2s,color .2s,transform .2s;
 }
@@ -77,13 +77,17 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 @media (max-width:720px){
   .nav-voci .nascondi-m{display:none}
 }
+@media (max-width:480px){
+  .nav-tel .num{display:none}
+  .nav-tel::after{content:"Chiama"}
+}
 
 /* ============ HERO — l'insegna ============ */
 .hero{
   position:relative;min-height:100svh;
   background:var(--blu);color:var(--bianco);
   display:flex;flex-direction:column;justify-content:center;
-  padding:120px var(--pad) 60px;
+  padding:100px var(--pad) 50px;
   overflow:hidden;
 }
 /* la trama dell'insegna: righe sottili come una tenda da sole */
@@ -91,7 +95,7 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
   content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;
   background:repeating-linear-gradient(90deg,transparent 0 22px,var(--bianco) 22px 23px);
 }
-.hero-inner{position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto}
+.hero-inner{position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto;container-type:inline-size}
 .sopratitolo{
   font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;
   opacity:.8;margin-bottom:22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
@@ -99,8 +103,13 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 .sopratitolo i{width:6px;height:6px;border-radius:50%;background:var(--rosso);display:inline-block}
 .hero h1{
   text-transform:uppercase;
-  font-size:clamp(46px,10.5vw,152px);
+  font-size:clamp(44px,8.3vw,128px);
   line-height:.9;
+}
+.hero h1 .parola{display:inline-block}
+@media (max-width:640px){
+  .hero h1{font-size:12vw;font-size:13.4cqw}
+  .hero h1 .parola{display:block}
 }
 .hero h1 .riga{display:block;overflow:hidden}
 .hero h1 .riga span{display:inline-block}
@@ -301,7 +310,9 @@ footer{
 }
 footer .marchio{color:var(--bianco)}
 footer ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+footer a{display:inline-block;padding:6px 0}
 footer a:hover{color:var(--bianco)}
+.voto p a,.nota a,.dove address a{display:inline-block;padding:8px 0}
 
 /* ============ REVEAL — additivo: senza JS tutto visibile ============ */
 .js .svela{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.24,1)}
@@ -327,7 +338,7 @@ footer a:hover{color:var(--bianco)}
       <li class="nascondi-m"><a class="voce" href="#pranzo">Pranzo</a></li>
       <li class="nascondi-m"><a class="voce" href="#aperitivo">Aperitivo</a></li>
       <li class="nascondi-m"><a class="voce" href="#dove">Dove</a></li>
-      <li><a class="nav-tel" href="tel:+390362528451"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1L6.6 10.8z" fill="currentColor"/></svg>0362 528451</a></li>
+      <li><a class="nav-tel" href="tel:+390362528451"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1L6.6 10.8z" fill="currentColor"/></svg><span class="num">0362 528451</span></a></li>
     </ul>
   </nav>
 </header>
@@ -337,7 +348,7 @@ footer a:hover{color:var(--bianco)}
   <div class="hero-inner">
     <p class="sopratitolo">Cesano Maderno <i aria-hidden="true"></i> Via Nazionale dei Giovi 59</p>
     <h1>
-      <span class="riga"><span>Bar Tabacchi</span></span>
+      <span class="riga"><span><span class="parola">Bar</span> <span class="parola">Tabacchi</span></span></span>
       <span class="riga"><span class="cinquantanove">59</span></span>
     </h1>
     <p class="firma">
@@ -556,6 +567,19 @@ footer a:hover{color:var(--bianco)}
 /* Tutto additivo: senza JS la pagina e' completa e la linea del giorno resta ferma. */
 (function(){
   document.documentElement.classList.add("js");
+
+  /* ---- titolo: se una riga non ci sta nel contenitore, si riduce.
+          Le unita' vw non bastano: con font larghi e viewport strani tagliano. ---- */
+  var h1 = document.querySelector(".hero h1");
+  function adattaTitolo(){
+    h1.style.fontSize = "";
+    var cont = h1.clientWidth, base = parseFloat(getComputedStyle(h1).fontSize), max = 0;
+    h1.querySelectorAll(".riga > span, .parola").forEach(function(el){ max = Math.max(max, el.scrollWidth); });
+    if (max > cont) h1.style.fontSize = Math.floor(base * cont / max * 0.98) + "px";
+  }
+  adattaTitolo();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(adattaTitolo);
+  window.addEventListener("resize", adattaTitolo);
 
   /* ---- nav: bianca appena si lascia l'insegna ---- */
   var nav = document.getElementById("nav");
