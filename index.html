@@ -57,6 +57,11 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
   transition:background .35s,color .35s,box-shadow .35s;
 }
 .nav.solida{background:var(--bianco);color:var(--inchiostro);box-shadow:0 1px 0 var(--linea)}
+.nav-giorno{position:absolute;left:0;right:0;bottom:-2px;height:3px;background:var(--linea);opacity:0;transition:opacity .3s}
+.nav.solida .nav-giorno{opacity:1}
+.nav-giorno .pieno{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--blu)}
+.nav-giorno .tacca{position:absolute;top:-4px;width:2px;height:11px;background:var(--blu);opacity:.35;transform:translateX(-50%)}
+.nav-giorno .punto{position:absolute;top:50%;left:0;width:11px;height:11px;border-radius:50%;background:var(--giallo);border:2px solid var(--blu);transform:translate(-50%,-50%)}
 .marchio{display:flex;align-items:center;gap:10px;white-space:nowrap}
 .marchio svg{width:26px;height:26px}
 .marchio b{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
@@ -94,7 +99,10 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 .hero::before{
   content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;
   background:repeating-linear-gradient(90deg,transparent 0 22px,var(--bianco) 22px 23px);
+  animation:tenda 30s linear infinite;
 }
+@keyframes tenda{to{background-position:23px 0}}
+@media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
 .hero-inner{position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto;container-type:inline-size}
 .sopratitolo{
   font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;
@@ -199,8 +207,7 @@ section{position:relative}
 .doppia{display:grid;grid-template-columns:1fr;gap:clamp(18px,3vw,40px);align-items:center}
 @media (min-width:860px){.doppia{grid-template-columns:1fr 1fr}}
 .foto{overflow:hidden;border-radius:var(--raggio);background:var(--blu-tinta)}
-.foto img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.22,.8,.24,1)}
-.foto:hover img{transform:scale(1.04)}
+.foto img{width:100%;height:114%;object-fit:cover;will-change:transform}
 .foto.alta{aspect-ratio:3/4}
 .foto.larga{aspect-ratio:4/3}
 .mosaico{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,20px)}
@@ -314,10 +321,10 @@ footer a{display:inline-block;padding:6px 0}
 footer a:hover{color:var(--bianco)}
 .voto p a,.nota a,.dove address a{display:inline-block;padding:8px 0}
 
-/* ============ REVEAL — additivo: senza JS tutto visibile ============ */
-.js .svela{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.24,1)}
-.js .svela.dentro{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.js .svela{opacity:1;transform:none;transition:none}}
+/* ============ MOTION — la fa GSAP, in modo additivo: senza GSAP o con
+   reduced-motion la pagina e' gia' completa ============ */
+.svela{will-change:transform}
+.tiglio{transform-style:preserve-3d;backface-visibility:hidden}
 </style>
 </head>
 <body>
@@ -341,6 +348,11 @@ footer a:hover{color:var(--bianco)}
       <li><a class="nav-tel" href="tel:+390362528451"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1L6.6 10.8z" fill="currentColor"/></svg><span class="num">0362 528451</span></a></li>
     </ul>
   </nav>
+  <div class="nav-giorno" aria-hidden="true">
+    <div class="pieno" id="nav-pieno"></div>
+    <i class="tacca" data-tappa="colazione"></i><i class="tacca" data-tappa="pranzo"></i><i class="tacca" data-tappa="aperitivo"></i><i class="tacca" data-tappa="dove"></i>
+    <div class="punto" id="nav-punto"></div>
+  </div>
 </header>
 
 <!-- HERO: l'insegna -->
@@ -563,11 +575,12 @@ footer a:hover{color:var(--bianco)}
   </ul>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script>
-/* Tutto additivo: senza JS la pagina e' completa e la linea del giorno resta ferma. */
+/* Tutto additivo: senza JS la pagina e' completa; senza GSAP restano
+   l'indicatore "adesso" e il titolo che si adatta. */
 (function(){
-  document.documentElement.classList.add("js");
-
   /* ---- titolo: se una riga non ci sta nel contenitore, si riduce.
           Le unita' vw non bastano: con font larghi e viewport strani tagliano. ---- */
   var h1 = document.querySelector(".hero h1");
@@ -593,7 +606,7 @@ footer a:hover{color:var(--bianco)}
     try{
       var p = new Intl.DateTimeFormat("it-IT",{timeZone:"Europe/Rome",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
       var h = +p.find(function(x){return x.type==="hour"}).value, m = +p.find(function(x){return x.type==="minute"}).value;
-      return h*60+m;
+      return (h%24)*60+m;
     }catch(e){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
   }
   function fase(min){
@@ -623,16 +636,117 @@ footer a:hover{color:var(--bianco)}
   aggiornaGiorno();
   setInterval(aggiornaGiorno, 60000);
 
-  /* ---- reveal: IntersectionObserver con rete di sicurezza a tempo
-          (un pannello nascosto non consegna i callback) ---- */
-  var elementi = Array.prototype.slice.call(document.querySelectorAll(".svela"));
-  function mostraTutto(){ elementi.forEach(function(el){ el.classList.add("dentro"); }); }
-  if (!("IntersectionObserver" in window)){ mostraTutto(); return; }
-  var io = new IntersectionObserver(function(voci){
-    voci.forEach(function(v){ if (v.isIntersecting){ v.target.classList.add("dentro"); io.unobserve(v.target); } });
-  }, {rootMargin:"0px 0px -10% 0px"});
-  elementi.forEach(function(el){ io.observe(el); });
-  setTimeout(mostraTutto, 1500);
+  /* ================= MOTION ================= */
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!window.gsap || !window.ScrollTrigger || reduced) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Tab caricato in background: al ritorno visibile i trigger si ricalcolano
+  document.addEventListener("visibilitychange", function(){
+    if (!document.hidden) ScrollTrigger.refresh();
+  });
+
+  /* ---- intro: l'insegna si accende riga per riga, poi si disegna la giornata ---- */
+  var intro = gsap.timeline({defaults:{ease:"power3.out"}});
+  intro
+    .from(".hero .sopratitolo", {autoAlpha:0, y:14, duration:.6})
+    .from(".hero h1 .riga > span", {yPercent:110, duration:.9, stagger:.14}, "-=.35")
+    .from(".hero .firma > *", {autoAlpha:0, y:18, duration:.6, stagger:.12}, "-=.45")
+    .from(".hero-basso > *", {autoAlpha:0, y:22, duration:.6, stagger:.12}, "-=.3")
+    .from(".giorno-testa", {autoAlpha:0, duration:.5}, "-=.25")
+    .from(".binario", {scaleX:0, transformOrigin:"left center", duration:.9, ease:"power2.inOut"}, "-=.3")
+    .from(".tappe li", {autoAlpha:0, y:12, duration:.5, stagger:.09}, "-=.5");
+  // rete di sicurezza: tab in background (rAF fermo) = intro portata a fine
+  setTimeout(function(){ if (intro.progress() < 1) intro.progress(1); }, 3200);
+
+  /* ---- hero: l'insegna resta indietro allo scroll ---- */
+  gsap.to(".hero-inner", {
+    yPercent:12, autoAlpha:.15, ease:"none",
+    scrollTrigger:{trigger:".hero", start:"top top", end:"bottom top", scrub:.6}
+  });
+
+  /* ---- la giornata in nav: lo scroll dei capitoli e' la linea del giorno ---- */
+  var navPieno = document.getElementById("nav-pieno"), navPunto = document.getElementById("nav-punto");
+  var tacche = document.querySelectorAll(".nav-giorno .tacca");
+  function posizionaTacche(){
+    var s = document.getElementById("colazione").offsetTop, e = document.getElementById("dove").offsetTop;
+    tacche.forEach(function(t){
+      var q = (document.getElementById(t.dataset.tappa).offsetTop - s) / (e - s);
+      t.style.left = (q*100).toFixed(2) + "%";
+    });
+  }
+  posizionaTacche();
+  ScrollTrigger.addEventListener("refresh", posizionaTacche);
+  ScrollTrigger.create({
+    trigger:"#colazione", start:"top center", endTrigger:"#dove", end:"top center", scrub:.4,
+    onUpdate:function(self){
+      var q = (self.progress*100).toFixed(2) + "%";
+      navPieno.style.width = q; navPunto.style.left = q;
+    }
+  });
+
+  /* ---- teste dei capitoli: l'ora entra da sinistra, il titolo da sotto ---- */
+  gsap.utils.toArray(".capitolo-testa").forEach(function(testa){
+    var tl = gsap.timeline({scrollTrigger:{trigger:testa, start:"top 80%"}});
+    tl.from(testa.querySelector(".ora"), {xPercent:-30, autoAlpha:0, duration:.8, ease:"power3.out"})
+      .from(testa.querySelector("h2"), {y:30, autoAlpha:0, duration:.7, ease:"power3.out"}, "-=.5")
+      .from(testa.querySelector("p"), {y:20, autoAlpha:0, duration:.6}, "-=.4");
+  });
+
+  /* ---- reveal generici ---- */
+  gsap.utils.toArray(".svela").forEach(function(el){
+    if (el.classList.contains("capitolo-testa")) return; // gia' sopra
+    gsap.from(el, {
+      autoAlpha:0, y:34, duration:.8, ease:"power3.out",
+      scrollTrigger:{trigger:el, start:"top 88%"}
+    });
+  });
+
+  /* ---- foto: parallasse interno, ognuna col suo passo ---- */
+  gsap.utils.toArray(".foto img").forEach(function(img, i){
+    gsap.fromTo(img, {yPercent:-11}, {
+      yPercent:0, ease:"none",
+      scrollTrigger:{trigger:img.parentNode, start:"top bottom", end:"bottom top", scrub:1}
+    });
+  });
+
+  /* ---- liste: le righe arrivano una alla volta ---- */
+  gsap.utils.toArray(".lista-piatti").forEach(function(lista){
+    gsap.from(lista.querySelectorAll("li"), {
+      autoAlpha:0, x:-16, duration:.5, stagger:.06, ease:"power2.out",
+      scrollTrigger:{trigger:lista, start:"top 85%"}
+    });
+  });
+
+  /* ---- 12 €: il prezzo salta fuori ---- */
+  gsap.from(".formula .prezzo", {
+    scale:.5, autoAlpha:0, transformOrigin:"left center", duration:.9, ease:"back.out(1.7)",
+    scrollTrigger:{trigger:".formula", start:"top 80%"}
+  });
+
+  /* ---- la T dei tabacchi si gira come un'insegna ---- */
+  gsap.from(".tiglio", {
+    rotationY:-90, autoAlpha:0, duration:1, ease:"power3.out",
+    scrollTrigger:{trigger:".tabacchi", start:"top 75%"}
+  });
+
+  /* ---- 4,4: il voto conta da zero e le stelle si accendono ---- */
+  var numero = document.querySelector(".voto .numero"), conto = {v:0};
+  gsap.to(conto, {
+    v:4.4, duration:1.4, ease:"power2.out",
+    onUpdate:function(){ numero.textContent = conto.v.toFixed(1).replace(".", ","); },
+    scrollTrigger:{trigger:".voto", start:"top 80%"}
+  });
+  gsap.from(".voto .stelle svg", {
+    scale:0, autoAlpha:0, transformOrigin:"center", duration:.45, stagger:.12, ease:"back.out(2)",
+    scrollTrigger:{trigger:".voto", start:"top 80%"}
+  });
+
+  /* ---- dove: il titolo entra a scaletta ---- */
+  gsap.from(".dove h2 .script", {
+    autoAlpha:0, x:-20, duration:.8, ease:"power3.out",
+    scrollTrigger:{trigger:".dove", start:"top 75%"}
+  });
 })();
 </script>
 </body>
