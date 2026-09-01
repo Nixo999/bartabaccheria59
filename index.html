@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bar Tabacchi Fiftynine — Cesano Maderno · colazioni, pizzeria, aperitivi</title>
+<meta name="description" content="Bar Tabacchi Fiftynine, via Nazionale dei Giovi 59 a Cesano Maderno. Aperto dalle 5:30 alle 21:30: colazione, pizza a pranzo, aperitivo con frittini e tabacchi.">
+<!-- Bozza commerciale non commissionata: fuori dagli indici finche' non e' loro.
+     Un secondo sito col loro marchio nei risultati di Google danneggia il lead. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1b4aa4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Yellowtail&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS — dall'insegna: blu, il 59 rosso, bianco ============ */
+:root{
+  --blu:#1b4aa4;
+  --blu-scuro:#123478;
+  --blu-tinta:#e9eef9;
+  --rosso:#d9262d;
+  --bianco:#ffffff;
+  --inchiostro:#17203a;
+  --grigio:#5d667f;
+  --linea:rgba(23,32,58,.14);
+  --giallo:#f2b429;   /* il piattino della loro tazza: solo per l'indicatore "adesso" */
+  --pad:clamp(20px,5vw,72px);
+  --raggio:14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:var(--bianco);
+  color:var(--inchiostro);
+  font-family:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  font-size:17px;line-height:1.55;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--rosso);color:var(--bianco)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--rosso);outline-offset:3px;border-radius:4px}
+
+h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height:1;letter-spacing:-.01em}
+.script{font-family:"Yellowtail",cursive;font-weight:400;letter-spacing:0;text-transform:none}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px var(--pad);
+  color:var(--bianco);
+  transition:background .35s,color .35s,box-shadow .35s;
+}
+.nav.solida{background:var(--bianco);color:var(--inchiostro);box-shadow:0 1px 0 var(--linea)}
+.marchio{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.marchio svg{width:26px;height:26px}
+.marchio b{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.marchio b i{font-style:normal;color:var(--rosso)}
+.nav.solida .marchio svg .vetro{stroke:var(--blu)}
+.nav-voci{display:flex;align-items:center;gap:clamp(14px,2.6vw,30px);list-style:none}
+.nav-voci a.voce{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;opacity:.85;transition:opacity .2s}
+.nav-voci a.voce:hover,.nav-voci a.voce:focus-visible{opacity:1}
+.nav-tel{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;letter-spacing:.06em;
+  padding:10px 18px;border-radius:999px;
+  background:var(--bianco);color:var(--blu);
+  transition:background .2s,color .2s,transform .2s;
+}
+.nav.solida .nav-tel{background:var(--blu);color:var(--bianco)}
+.nav-tel:hover,.nav-tel:focus-visible{transform:translateY(-1px)}
+@media (max-width:720px){
+  .nav-voci .nascondi-m{display:none}
+}
+
+/* ============ HERO — l'insegna ============ */
+.hero{
+  position:relative;min-height:100svh;
+  background:var(--blu);color:var(--bianco);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:120px var(--pad) 60px;
+  overflow:hidden;
+}
+/* la trama dell'insegna: righe sottili come una tenda da sole */
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,var(--bianco) 22px 23px);
+}
+.hero-inner{position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto}
+.sopratitolo{
+  font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;
+  opacity:.8;margin-bottom:22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.sopratitolo i{width:6px;height:6px;border-radius:50%;background:var(--rosso);display:inline-block}
+.hero h1{
+  text-transform:uppercase;
+  font-size:clamp(46px,10.5vw,152px);
+  line-height:.9;
+}
+.hero h1 .riga{display:block;overflow:hidden}
+.hero h1 .riga span{display:inline-block}
+.hero h1 .cinquantanove{color:var(--rosso);-webkit-text-stroke:1px rgba(255,255,255,.35)}
+.hero .firma{
+  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-top:8px;
+}
+.hero .firma .script{font-size:clamp(34px,6vw,84px);line-height:1;color:var(--bianco)}
+.hero .firma small{
+  font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;
+  font-size:clamp(13px,1.6vw,20px);letter-spacing:.26em;
+  border:2px solid rgba(255,255,255,.7);padding:8px 14px;border-radius:6px;
+}
+.hero-basso{
+  display:grid;grid-template-columns:1fr;gap:34px;margin-top:clamp(36px,7vh,70px);align-items:end;
+}
+@media (min-width:900px){.hero-basso{grid-template-columns:1.2fr .8fr}}
+.hero p.lead{font-size:clamp(18px,2.2vw,24px);max-width:34ch;line-height:1.4;font-weight:400}
+.hero p.lead strong{font-weight:700}
+.hero-azioni{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start}
+@media (min-width:900px){.hero-azioni{justify-content:flex-end}}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  padding:16px 26px;border-radius:999px;
+  transition:transform .2s,background .2s,color .2s,border-color .2s;
+}
+.btn-pieno{background:var(--bianco);color:var(--blu)}
+.btn-pieno:hover,.btn-pieno:focus-visible{background:var(--rosso);color:var(--bianco);transform:translateY(-2px)}
+.btn-vuoto{border:2px solid rgba(255,255,255,.6);color:var(--bianco)}
+.btn-vuoto:hover,.btn-vuoto:focus-visible{border-color:var(--bianco);transform:translateY(-2px)}
+
+/* ============ LA LINEA DEL GIORNO — la firma del sito ============ */
+.giorno{
+  position:relative;z-index:1;
+  max-width:1240px;margin:clamp(40px,8vh,80px) auto 0;
+  color:var(--bianco);
+}
+.giorno-testa{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.giorno-testa b{font-size:13px;text-transform:uppercase;letter-spacing:.24em;font-weight:600;opacity:.8}
+#adesso{
+  font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.12);padding:8px 14px;border-radius:999px;
+}
+#adesso i{width:9px;height:9px;border-radius:50%;background:var(--giallo);box-shadow:0 0 0 0 rgba(242,180,41,.6);animation:batti 2s ease-out infinite}
+#adesso.chiuso i{background:rgba(255,255,255,.45);animation:none}
+@keyframes batti{0%{box-shadow:0 0 0 0 rgba(242,180,41,.6)}100%{box-shadow:0 0 0 12px rgba(242,180,41,0)}}
+@media (prefers-reduced-motion:reduce){#adesso i{animation:none}}
+.binario{position:relative;height:4px;background:rgba(255,255,255,.22);border-radius:4px}
+.binario .pieno{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--bianco);border-radius:4px;transition:width 1.6s cubic-bezier(.22,.8,.24,1)}
+.binario .cursore{
+  position:absolute;top:50%;width:18px;height:18px;border-radius:50%;
+  background:var(--giallo);border:3px solid var(--blu);
+  transform:translate(-50%,-50%);display:none;
+}
+.binario .cursore.visibile{display:block}
+.tappe{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;gap:8px}
+.tappe li{position:relative;padding-top:14px}
+.tappe li::before{content:"";position:absolute;top:-19px;left:0;width:2px;height:10px;background:var(--bianco);opacity:.7}
+.tappe a{display:block}
+.tappe time{display:block;font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(16px,2.4vw,26px);letter-spacing:-.01em}
+.tappe span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.18em;opacity:.8;margin-top:2px}
+.tappe li:last-child{text-align:right}
+.tappe li:last-child::before{left:auto;right:0}
+
+/* ============ CAPITOLI ============ */
+section{position:relative}
+.capitolo{padding:clamp(80px,12vh,140px) var(--pad)}
+.capitolo-inner{max-width:1240px;margin:0 auto}
+.capitolo-testa{
+  display:grid;grid-template-columns:auto 1fr;gap:18px clamp(18px,3vw,40px);align-items:end;
+  margin-bottom:clamp(30px,5vh,56px);
+}
+.ora{
+  font-family:"Syne",sans-serif;font-weight:800;
+  font-size:clamp(40px,7vw,96px);line-height:.9;letter-spacing:-.03em;
+  color:var(--blu);
+}
+.ora sup{font-size:.42em;vertical-align:top;margin-left:2px;color:var(--rosso);letter-spacing:0}
+.capitolo-testa h2{
+  text-transform:uppercase;font-size:clamp(28px,4.6vw,60px);color:var(--inchiostro);
+}
+.capitolo-testa p{grid-column:1/-1;color:var(--grigio);max-width:60ch;font-size:clamp(17px,1.6vw,20px)}
+.capitolo-testa p strong{color:var(--inchiostro);font-weight:600}
+
+/* griglia foto + testo */
+.doppia{display:grid;grid-template-columns:1fr;gap:clamp(18px,3vw,40px);align-items:center}
+@media (min-width:860px){.doppia{grid-template-columns:1fr 1fr}}
+.foto{overflow:hidden;border-radius:var(--raggio);background:var(--blu-tinta)}
+.foto img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.22,.8,.24,1)}
+.foto:hover img{transform:scale(1.04)}
+.foto.alta{aspect-ratio:3/4}
+.foto.larga{aspect-ratio:4/3}
+.mosaico{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,20px)}
+.mosaico .foto:first-child{grid-column:1/-1}
+.mosaico .foto:first-child{aspect-ratio:16/10}
+
+.lista-piatti{list-style:none;display:flex;flex-direction:column}
+.lista-piatti li{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:14px 0;border-top:1px solid var(--linea);
+}
+.lista-piatti li:last-child{border-bottom:1px solid var(--linea)}
+.lista-piatti b{font-weight:600}
+.lista-piatti small{display:block;color:var(--grigio);font-size:14px;margin-top:2px}
+.lista-piatti em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap}
+.nota{color:var(--grigio);font-size:14px;margin-top:16px}
+
+/* colazione: fondo bianco. pranzo: tinta. aperitivo: blu pieno. */
+.pranzo{background:var(--blu-tinta)}
+
+.aperitivo{background:var(--blu);color:var(--bianco)}
+.aperitivo .ora,.aperitivo .capitolo-testa h2{color:var(--bianco)}
+.aperitivo .ora sup{color:var(--giallo)}
+.aperitivo .capitolo-testa p{color:rgba(255,255,255,.78)}
+.aperitivo .capitolo-testa p strong{color:var(--bianco)}
+.aperitivo .lista-piatti li{border-color:rgba(255,255,255,.18)}
+.aperitivo .lista-piatti small{color:rgba(255,255,255,.65)}
+.aperitivo .lista-piatti em{color:var(--giallo)}
+.aperitivo .nota{color:rgba(255,255,255,.65)}
+.formula{
+  border:2px solid rgba(255,255,255,.35);border-radius:var(--raggio);
+  padding:clamp(22px,3vw,34px);margin-bottom:clamp(26px,4vh,40px);
+  display:grid;grid-template-columns:1fr;gap:16px;align-items:center;
+}
+@media (min-width:640px){.formula{grid-template-columns:auto 1fr}}
+.formula .prezzo{
+  font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(56px,9vw,110px);
+  line-height:.85;letter-spacing:-.04em;color:var(--giallo);
+}
+.formula .prezzo sup{font-size:.4em;vertical-align:top;letter-spacing:0}
+.formula h3{font-size:clamp(20px,2.4vw,30px);text-transform:uppercase;margin-bottom:8px}
+.formula p{color:rgba(255,255,255,.8);max-width:46ch}
+.due-colonne{display:grid;grid-template-columns:1fr;gap:clamp(24px,4vw,56px)}
+@media (min-width:860px){.due-colonne{grid-template-columns:1fr 1fr}}
+.due-colonne h3{font-size:13px;text-transform:uppercase;letter-spacing:.24em;font-weight:700;margin-bottom:10px;opacity:.85}
+.aperitivo .mosaico{margin-top:clamp(30px,5vh,56px)}
+
+/* ============ TABACCHI — fascia ============ */
+.tabacchi{
+  background:var(--inchiostro);color:var(--bianco);
+  padding:clamp(50px,8vh,80px) var(--pad);
+}
+.tabacchi .capitolo-inner{display:flex;align-items:center;gap:clamp(18px,4vw,50px);flex-wrap:wrap}
+.tabacchi .tiglio{
+  flex:none;width:clamp(72px,10vw,120px);aspect-ratio:1;
+  background:var(--bianco);color:var(--inchiostro);
+  display:grid;place-items:center;border-radius:8px;
+  font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(46px,7vw,84px);line-height:1;
+}
+.tabacchi h2{text-transform:uppercase;font-size:clamp(26px,4vw,48px);margin-bottom:8px}
+.tabacchi p{color:rgba(255,255,255,.75);max-width:52ch}
+.tabacchi p strong{color:var(--bianco);font-weight:600}
+
+/* ============ RECENSIONI ============ */
+.recensioni .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px);align-items:start}
+@media (min-width:900px){.recensioni .capitolo-inner{grid-template-columns:.8fr 1.2fr}}
+.voto{display:flex;flex-direction:column;gap:8px}
+.voto .numero{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(80px,14vw,170px);line-height:.85;letter-spacing:-.05em;color:var(--blu)}
+.voto .stelle{display:flex;gap:4px;color:var(--giallo)}
+.voto .stelle svg{width:22px;height:22px;fill:currentColor}
+.voto .stelle svg.mezza{fill:url(#mezza)}
+.voto p{color:var(--grigio);font-size:15px}
+.voto p a{color:var(--blu);font-weight:600;border-bottom:1px solid currentColor}
+.citazioni{list-style:none;display:flex;flex-direction:column;gap:6px}
+.citazioni li{padding:22px 0;border-top:1px solid var(--linea)}
+.citazioni li:last-child{border-bottom:1px solid var(--linea)}
+.citazioni q{font-family:"Syne",sans-serif;font-weight:700;font-size:clamp(20px,2.4vw,30px);line-height:1.2;quotes:"«" "»";display:block}
+.citazioni q::before{color:var(--rosso)}
+.citazioni q::after{color:var(--rosso)}
+.citazioni span{display:block;margin-top:10px;font-size:13px;text-transform:uppercase;letter-spacing:.18em;color:var(--grigio)}
+
+/* ============ DOVE ============ */
+.dove{background:var(--blu-tinta)}
+.dove .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px)}
+@media (min-width:900px){.dove .capitolo-inner{grid-template-columns:1fr 1fr}}
+.dove h2{text-transform:uppercase;font-size:clamp(34px,6vw,80px);color:var(--blu);margin-bottom:18px}
+.dove h2 .script{display:block;color:var(--rosso);font-size:.62em;margin-top:6px}
+.dove address{font-style:normal;font-size:clamp(18px,2vw,22px);line-height:1.4}
+.dove address a{border-bottom:2px solid var(--blu);font-weight:600}
+.dove .azioni{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.dove .btn-pieno{background:var(--blu);color:var(--bianco)}
+.dove .btn-vuoto{border-color:var(--blu);color:var(--blu)}
+.dove .btn-vuoto:hover,.dove .btn-vuoto:focus-visible{background:var(--blu);color:var(--bianco)}
+.scheda{background:var(--bianco);border-radius:var(--raggio);padding:clamp(22px,3vw,34px)}
+.scheda dl{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:baseline}
+.scheda dt{font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--grigio);font-weight:600;padding-top:4px}
+.scheda dd{font-weight:600}
+.scheda dd small{display:block;color:var(--grigio);font-weight:400;font-size:14px}
+.scheda .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.scheda .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--blu-tinta);color:var(--blu)}
+
+/* ============ FOOTER ============ */
+footer{
+  background:var(--blu-scuro);color:rgba(255,255,255,.75);
+  padding:40px var(--pad) 56px;font-size:14px;
+  display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start;
+}
+footer .marchio{color:var(--bianco)}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+footer a:hover{color:var(--bianco)}
+
+/* ============ REVEAL — additivo: senza JS tutto visibile ============ */
+.js .svela{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.24,1)}
+.js .svela.dentro{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js .svela{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="mezza"><stop offset="50%" stop-color="#f2b429"/><stop offset="50%" stop-color="rgba(23,32,58,.18)"/></linearGradient></defs>
+</svg>
+
+<!-- NAV -->
+<header class="nav" id="nav">
+  <a class="marchio" href="#top" aria-label="Bar Tabacchi Fiftynine — torna su">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="vetro" d="M3 3h18l-8 9v6h4v2H7v-2h4v-6L3 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <b>Bar Tabacchi <i>59</i></b>
+  </a>
+  <nav aria-label="principale">
+    <ul class="nav-voci">
+      <li class="nascondi-m"><a class="voce" href="#colazione">Colazione</a></li>
+      <li class="nascondi-m"><a class="voce" href="#pranzo">Pranzo</a></li>
+      <li class="nascondi-m"><a class="voce" href="#aperitivo">Aperitivo</a></li>
+      <li class="nascondi-m"><a class="voce" href="#dove">Dove</a></li>
+      <li><a class="nav-tel" href="tel:+390362528451"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1L6.6 10.8z" fill="currentColor"/></svg>0362 528451</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- HERO: l'insegna -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <p class="sopratitolo">Cesano Maderno <i aria-hidden="true"></i> Via Nazionale dei Giovi 59</p>
+    <h1>
+      <span class="riga"><span>Bar Tabacchi</span></span>
+      <span class="riga"><span class="cinquantanove">59</span></span>
+    </h1>
+    <p class="firma">
+      <span class="script">fiftynine</span>
+      <small>e pizzeria</small>
+    </p>
+
+    <div class="hero-basso">
+      <p class="lead">Il bar sulla Nazionale dei Giovi, aperto <strong>dalle 5:30 alle 21:30</strong>: colazione, pizza a pranzo, aperitivo con i frittini. E il tabacchi, tutto il giorno.</p>
+      <div class="hero-azioni">
+        <a class="btn btn-pieno" href="#aperitivo">Aperitivo a 12 €</a>
+        <a class="btn btn-vuoto" href="#dove">Come arrivare</a>
+      </div>
+    </div>
+
+    <!-- La linea del giorno: le ore vere del bar, con il punto su "adesso" -->
+    <div class="giorno" aria-label="La giornata del bar">
+      <div class="giorno-testa">
+        <b>La giornata</b>
+        <span id="adesso"><i aria-hidden="true"></i><span>Aperto dalle 5:30 alle 21:30</span></span>
+      </div>
+      <div class="binario" aria-hidden="true"><div class="pieno" id="pieno"></div><div class="cursore" id="cursore"></div></div>
+      <ul class="tappe">
+        <li><a href="#colazione"><time datetime="05:30">5:30</time><span>Colazione</span></a></li>
+        <li><a href="#pranzo"><time datetime="12:00">12:00</time><span>Pranzo</span></a></li>
+        <li><a href="#aperitivo"><time datetime="18:00">18:00</time><span>Aperitivo</span></a></li>
+        <li><a href="#dove"><time datetime="21:30">21:30</time><span>Chiusura</span></a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5:30 COLAZIONE -->
+<section class="capitolo colazione" id="colazione">
+  <div class="capitolo-inner">
+    <div class="capitolo-testa svela">
+      <div class="ora">5<sup>30</sup></div>
+      <h2>Colazione</h2>
+      <p>Si apre quando fuori è ancora buio. <strong>Cappuccino e brioche</strong> per chi va al lavoro, marocchino con la Nutella per chi ha dieci minuti in più, waffle per chi non ha fretta.</p>
+    </div>
+    <div class="doppia">
+      <div class="foto alta svela"><img src="assets/img/post-06-2025-08-06b.jpg" alt="Cappuccino con il cuore nella schiuma e brioche farcita sul piattino giallo" width="480" height="640" loading="lazy"></div>
+      <div class="mosaico">
+        <div class="foto svela"><img src="assets/img/post-02-2025-08-31.jpg" alt="Marocchino con Nutella nel bicchierino di vetro sul piattino giallo" width="481" height="640" loading="lazy"></div>
+        <div class="foto alta svela"><img src="assets/img/post-04-2025-08-09.jpg" alt="Waffle con zucchero a velo, cioccolato e fragola" width="481" height="640" loading="lazy"></div>
+        <div class="foto alta svela" style="display:grid;place-items:center;padding:24px;text-align:center">
+          <p style="font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(18px,2vw,24px);line-height:1.15;color:var(--blu)">Cappuccino, marocchino, ginseng.<br><span class="script" style="color:var(--rosso);font-size:1.5em">e la brioche calda</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12:00 PRANZO -->
+<section class="capitolo pranzo" id="pranzo">
+  <div class="capitolo-inner">
+    <div class="capitolo-testa svela">
+      <div class="ora">12<sup>00</sup></div>
+      <h2>Pranzo e pizza</h2>
+      <p>La pizza esce dal forno anche a mezzogiorno. <strong>Trancio con patatine</strong> per la pausa veloce, tavolo fuori per chi vuole starci un po'. Ci sono anche le insalatone.</p>
+    </div>
+    <div class="doppia">
+      <div>
+        <ul class="lista-piatti">
+          <li><div><b>Pizza a pranzo</b><small>Tranci, con patatine fritte</small></div><em>menù</em></li>
+          <li><div><b>Fritti</b><small>Panzerottini, arancini, olive, mozzarelline</small></div></li>
+          <li><div><b>Insalatone</b><small>L'opzione vegetariana</small></div></li>
+          <li><div><b>Tavoli all'aperto</b><small>Sulla Nazionale dei Giovi, con la tenda</small></div></li>
+        </ul>
+        <p class="nota">Il menù del giorno è al banco. Per i gruppi, meglio una telefonata: <a href="tel:+390362528451" style="font-weight:600;color:var(--blu)">0362 528451</a>.</p>
+      </div>
+      <div class="foto larga svela"><img src="assets/img/post-03-2025-08-24.jpg" alt="Piatto con tranci di pizza margherita, patatine fritte, olive e panzerottini, sul bancone davanti alla vetrina" width="640" height="480" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18:00 APERITIVO -->
+<section class="capitolo aperitivo" id="aperitivo">
+  <div class="capitolo-inner">
+    <div class="capitolo-testa svela">
+      <div class="ora">18<sup>00</sup></div>
+      <h2>Aperitivo</h2>
+      <p>Dalle sei il bancone cambia faccia. <strong>Un drink a scelta e il misto di frittini</strong>, con i gyoza che sono diventati il piatto che si chiede per nome.</p>
+    </div>
+
+    <div class="formula svela">
+      <div class="prezzo">12<sup>€</sup></div>
+      <div>
+        <h3>Formula special</h3>
+        <p>Un cocktail a scelta dalla lista più il piatto di frittini misti: patatine, anelli di cipolla, panzerottini, arancini e gyoza. Uno solo, o due da dividere.</p>
+      </div>
+    </div>
+
+    <div class="due-colonne">
+      <div class="svela">
+        <h3>Cocktail</h3>
+        <ul class="lista-piatti">
+          <li><div><b>Aperol Spritz</b><small>Aperol, prosecco e soda</small></div><em>6 €</em></li>
+          <li><div><b>Campari Spritz</b><small>Campari, prosecco e soda</small></div><em>6 €</em></li>
+          <li><div><b>Negroni</b><small>Vermouth rosso, bitter e gin</small></div><em>7 €</em></li>
+          <li><div><b>Sbagliato</b><small>Vermouth rosso, bitter e spumante</small></div><em>7 €</em></li>
+          <li><div><b>Americano</b><small>Vermouth rosso, bitter e soda</small></div><em>7 €</em></li>
+          <li><div><b>Milano Torino</b><small>Vermouth rosso e bitter</small></div><em>7 €</em></li>
+          <li><div><b>Gin Tonic</b><small>Base di gin e tonica</small></div><em>7 €</em></li>
+          <li><div><b>Cuba Libre</b><small>Rum e cola</small></div><em>7 €</em></li>
+          <li><div><b>Vodka Lemon</b><small>Vodka e limonata</small></div><em>7 €</em></li>
+        </ul>
+        <p class="nota">Birre in bottiglia da 3,50 €, alla spina piccola 5 € e media 6 €.</p>
+      </div>
+      <div class="svela">
+        <h3>Frittini</h3>
+        <ul class="lista-piatti">
+          <li><div><b>Frittini misti</b><small>Il piatto della formula</small></div><em>7 €</em></li>
+          <li><div><b>Gyoza</b><small>6 pezzi 4 € · 10 pezzi 6 €</small></div><em>da 4 €</em></li>
+          <li><div><b>Patatine fritte</b></div><em>4,50 €</em></li>
+          <li><div><b>Patate dippers</b></div><em>4,50 €</em></li>
+          <li><div><b>Arancini</b></div><em>4,50 €</em></li>
+          <li><div><b>Panzerottini</b></div><em>4,50 €</em></li>
+          <li><div><b>Triangoli allo speck</b></div><em>4,50 €</em></li>
+          <li><div><b>Melanzane fritte</b></div><em>4,50 €</em></li>
+          <li><div><b>Frittelle gusto pizzaiola</b></div><em>4,50 €</em></li>
+        </ul>
+        <p class="nota">Prezzi della lista in bar. Possono cambiare: quella al banco vale più di questa pagina.</p>
+      </div>
+    </div>
+
+    <div class="mosaico">
+      <div class="foto svela"><img src="assets/img/post-01-2025-09-18.jpg" alt="Piatto di frittini misti: patatine, anelli di cipolla, arancini, toast e gyoza con la salsa" width="481" height="640" loading="lazy"></div>
+      <div class="foto larga svela"><img src="assets/img/post-00-2025-09-25.jpg" alt="Sei gyoza dorati sul piatto nero con la salsa di soia" width="640" height="426" loading="lazy"></div>
+      <div class="foto larga svela"><img src="assets/img/post-05-2025-08-06.jpg" alt="La lista dei cocktail del bar, con i prezzi" width="640" height="446" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TABACCHI — tutto il giorno -->
+<section class="tabacchi" id="tabacchi">
+  <div class="capitolo-inner svela">
+    <div class="tiglio" aria-hidden="true">T</div>
+    <div>
+      <h2>Tabacchi, tutto il giorno</h2>
+      <p>La tabaccheria segue l'orario del bar: <strong>dalle 5:30 alle 21:30</strong>, senza pausa. Il primo caffè e l'ultimo pacchetto della giornata si prendono allo stesso banco.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECENSIONI -->
+<section class="capitolo recensioni" id="recensioni">
+  <div class="capitolo-inner">
+    <div class="voto svela">
+      <div class="numero">4,4</div>
+      <div class="stelle" aria-label="4,4 stelle su 5">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.5 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.5 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.5 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.5 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>
+        <svg class="mezza" viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.5 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>
+      </div>
+      <p>su Google, 31 recensioni. <a href="https://www.google.com/maps/search/?api=1&query=Bar+Tabacchi+Fiftynine+Via+Nazionale+dei+Giovi+59+Cesano+Maderno" target="_blank" rel="noopener">Leggile tutte</a></p>
+    </div>
+    <ul class="citazioni">
+      <li class="svela"><q>Ottimo sia per colazione che per pranzo.</q><span>Gabriele P. — Google</span></li>
+      <li class="svela"><q>Perfetto per una pausa caffè o un aperitivo con amici.</q><span>Ricky — Google</span></li>
+      <li class="svela"><q>Servizio rapido e gentilezza.</q><span>Gabriele M. — Google</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- DOVE -->
+<section class="capitolo dove" id="dove">
+  <div class="capitolo-inner">
+    <div class="svela">
+      <h2>Sulla Nazionale<span class="script">al numero 59</span></h2>
+      <address>
+        Via Nazionale dei Giovi, 59<br>
+        20811 Cesano Maderno (MB)<br>
+        <a href="tel:+390362528451">0362 528451</a>
+      </address>
+      <div class="azioni">
+        <a class="btn btn-pieno" href="https://www.google.com/maps/dir/?api=1&destination=Via+Nazionale+dei+Giovi+59+20811+Cesano+Maderno+MB" target="_blank" rel="noopener">Indicazioni</a>
+        <a class="btn btn-vuoto" href="https://www.instagram.com/bartabacchi__fiftynine/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="scheda svela">
+      <dl>
+        <dt>Orario</dt><dd>5:30 – 21:30<small>Bar e tabacchi, orario continuato</small></dd>
+        <dt>Aperitivo</dt><dd>dalle 18:00<small>Formula special a 12 €</small></dd>
+        <dt>Spesa</dt><dd>10 – 20 € a persona<small>indicata da chi recensisce su Google</small></dd>
+        <dt>Telefono</dt><dd><a href="tel:+390362528451">0362 528451</a></dd>
+      </dl>
+      <ul class="servizi">
+        <li>Tavoli all'aperto</li>
+        <li>Si mangia al bar</li>
+        <li>Cani ammessi</li>
+        <li>Tabacchi</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="marchio" href="#top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18l-8 9v6h4v2H7v-2h4v-6L3 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <b>Bar Tabacchi <i>59</i> — fiftynine</b>
+  </a>
+  <ul>
+    <li>Via Nazionale dei Giovi 59, Cesano Maderno</li>
+    <li>Aperto 5:30 – 21:30</li>
+  </ul>
+  <ul>
+    <li><a href="tel:+390362528451">0362 528451</a></li>
+    <li><a href="https://www.instagram.com/bartabacchi__fiftynine/" target="_blank" rel="noopener">@bartabacchi__fiftynine</a></li>
+  </ul>
+</footer>
+
+<script>
+/* Tutto additivo: senza JS la pagina e' completa e la linea del giorno resta ferma. */
+(function(){
+  document.documentElement.classList.add("js");
+
+  /* ---- nav: bianca appena si lascia l'insegna ---- */
+  var nav = document.getElementById("nav");
+  function aggiornaNav(){ nav.classList.toggle("solida", window.scrollY > window.innerHeight * 0.75); }
+  window.addEventListener("scroll", aggiornaNav, {passive:true});
+  aggiornaNav();
+
+  /* ---- la linea del giorno: ora di Roma, apertura 5:30, chiusura 21:30 ---- */
+  var APRE = 5*60+30, CHIUDE = 21*60+30;
+  function minutiRoma(){
+    try{
+      var p = new Intl.DateTimeFormat("it-IT",{timeZone:"Europe/Rome",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
+      var h = +p.find(function(x){return x.type==="hour"}).value, m = +p.find(function(x){return x.type==="minute"}).value;
+      return h*60+m;
+    }catch(e){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+  }
+  function fase(min){
+    if (min < APRE || min >= CHIUDE) return null;
+    if (min < 12*60) return "Colazione";
+    if (min < 18*60) return "Pranzo";
+    return "Aperitivo";
+  }
+  function aggiornaGiorno(){
+    var min = minutiRoma(), adesso = document.getElementById("adesso"), testo = adesso.querySelector("span");
+    var pieno = document.getElementById("pieno"), cursore = document.getElementById("cursore");
+    var f = fase(min);
+    if (f){
+      var q = (min - APRE) / (CHIUDE - APRE);
+      pieno.style.width = (q*100).toFixed(1) + "%";
+      cursore.style.left = (q*100).toFixed(1) + "%";
+      cursore.classList.add("visibile");
+      adesso.classList.remove("chiuso");
+      testo.textContent = "Aperto adesso · " + f.toLowerCase();
+    } else {
+      pieno.style.width = (min >= CHIUDE ? 100 : 0) + "%";
+      cursore.classList.remove("visibile");
+      adesso.classList.add("chiuso");
+      testo.textContent = "Chiuso adesso · riapre alle 5:30";
+    }
+  }
+  aggiornaGiorno();
+  setInterval(aggiornaGiorno, 60000);
+
+  /* ---- reveal: IntersectionObserver con rete di sicurezza a tempo
+          (un pannello nascosto non consegna i callback) ---- */
+  var elementi = Array.prototype.slice.call(document.querySelectorAll(".svela"));
+  function mostraTutto(){ elementi.forEach(function(el){ el.classList.add("dentro"); }); }
+  if (!("IntersectionObserver" in window)){ mostraTutto(); return; }
+  var io = new IntersectionObserver(function(voci){
+    voci.forEach(function(v){ if (v.isIntersecting){ v.target.classList.add("dentro"); io.unobserve(v.target); } });
+  }, {rootMargin:"0px 0px -10% 0px"});
+  elementi.forEach(function(el){ io.observe(el); });
+  setTimeout(mostraTutto, 1500);
+})();
+</script>
+</body>
+</html>

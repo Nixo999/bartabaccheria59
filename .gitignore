@@ -1,0 +1,6 @@
+# Local Netlify folder
+.netlify
+
+# Dump grezzo dello scraping Instagram: serve a ricostruire i dati del
+# sito, non al sito. Fuori dal repo perche' questo e' pubblico.
+profilo-raw.json

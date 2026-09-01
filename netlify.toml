@@ -1,0 +1,19 @@
+# Statico puro: niente build, la root e' gia' il sito.
+[build]
+  publish = "."
+  command = ""
+
+# Doppio sbarramento agli indici, oltre al meta robots della pagina:
+# e' una bozza commerciale col marchio di un'azienda che non e' (ancora)
+# cliente. Quando il sito diventa loro, questa sezione si toglie.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
