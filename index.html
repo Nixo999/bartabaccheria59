@@ -338,7 +338,6 @@ section{position:relative}
 .altre > summary{list-style:none;cursor:pointer;margin-top:10px;padding:14px 18px;border-radius:999px;background:var(--blu);color:var(--bianco);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-align:center}
 .altre > summary::-webkit-details-marker{display:none}
 .altre[open] > summary{display:none}
-@media (min-width:760px){.altre > summary{display:none}}
 .menu-piede{margin-top:clamp(22px,4vh,36px);font-size:14px;color:rgba(233,226,214,.7);max-width:70ch}
 
 /* servizi della pizzeria */
@@ -797,6 +796,11 @@ footer a:hover{color:var(--bianco)}
 
   /* ---- pizze: sul telefono ne restano aperte dodici, le altre a richiesta ---- */
   var altre = document.querySelector(".altre");
+  /* Chiuse al caricamento solo sul telefono. Il tasto per riaprirle resta
+     visibile a ogni larghezza — prima sopra i 760px era `display:none`, e chi
+     caricava stretto per poi allargare (telefono ruotato, finestra ingrandita)
+     restava senza le 32 pizze e senza modo di chiederle. Quando la pagina
+     apre gia` larga il details e` `open` e il tasto sparisce da solo. */
   if (altre && window.innerWidth < 760) altre.removeAttribute("open");
 
   /* ---- nav: bianca appena si lascia l'insegna ---- */
