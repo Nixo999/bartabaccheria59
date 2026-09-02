@@ -64,7 +64,24 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 }
 .nav.solida .nav-tel{background:var(--blu);color:var(--bianco)}
 .nav-tel:hover,.nav-tel:focus-visible{transform:translateY(-1px)}
-@media (max-width:720px){
+/* Fra i 721 e i 980px ci sono tutte e quattro le voci e il tasto: senza
+   stringere servono 938px su 865 disponibili. Prima non si vedeva perche'
+   «Dove siamo» andava a capo — che non e` stare dentro, e` sembrare rotta. */
+@media (min-width:761px) and (max-width:980px){
+  .nav-voci{gap:14px}
+  .nav-voci a.voce{letter-spacing:.06em}
+  .nav .marchio b{font-size:13px}
+  .nav{padding-left:clamp(16px,3vw,32px);padding-right:clamp(16px,3vw,32px)}
+}
+/* Sotto gli 820 mancano ancora una ventina di pixel: si stringe di piu`,
+   ma solo qui — a 760px le voci arrivavano a 776. */
+@media (min-width:761px) and (max-width:820px){
+  .nav-voci{gap:10px}
+  .nav-voci a.voce{letter-spacing:.03em;font-size:12.5px}
+}
+/* Le voci spariscono a 760, non a 720: fra i due valori restavano dentro per
+   sei pixel, e sei pixel non sono un margine. */
+@media (max-width:760px){
   .nav-voci .nascondi-m{display:none}
 }
 @media (max-width:560px){
