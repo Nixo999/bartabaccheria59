@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bar Tabacchi Fiftynine — Cesano Maderno · colazioni, pizzeria, aperitivi</title>
-<meta name="description" content="Bar Tabacchi Fiftynine, via Nazionale dei Giovi 59 a Cesano Maderno. Aperto dalle 5:30 alle 21:30: colazione, pizza a pranzo, aperitivo con frittini e tabacchi.">
+<title>Bar Tabacchi Fiftynine e Pizzeria — Cesano Maderno</title>
+<meta name="description" content="Bar Tabacchi Fiftynine e Pizzeria, via Nazionale dei Giovi 59 a Cesano Maderno. Colazione dalle 5:30, 44 pizze in sala, da asporto o a domicilio, aperitivo con frittini, tabaccheria e ricevitoria. Tel. 0362 528451.">
 <!-- Bozza commerciale non commissionata: fuori dagli indici finche' non e' loro.
      Un secondo sito col loro marchio nei risultati di Google danneggia il lead. -->
 <meta name="robots" content="noindex, nofollow">
@@ -201,6 +201,7 @@ section{position:relative}
   text-transform:uppercase;font-size:clamp(28px,4.6vw,60px);color:var(--inchiostro);
 }
 .capitolo-testa p{grid-column:1/-1;color:var(--grigio);max-width:60ch;font-size:clamp(17px,1.6vw,20px)}
+@media (max-width:480px){.capitolo-testa{grid-template-columns:1fr;gap:6px}}
 .capitolo-testa p strong{color:var(--inchiostro);font-weight:600}
 
 /* griglia foto + testo */
@@ -225,8 +226,8 @@ section{position:relative}
 .lista-piatti em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap}
 .nota{color:var(--grigio);font-size:14px;margin-top:16px}
 
-/* colazione: fondo bianco. pranzo: tinta. aperitivo: blu pieno. */
-.pranzo{background:var(--blu-tinta)}
+/* colazione: fondo bianco. pizzeria: tinta. menù: legno. aperitivo: blu pieno. */
+.pizzeria{background:var(--blu-tinta)}
 
 .aperitivo{background:var(--blu);color:var(--bianco)}
 .aperitivo .ora,.aperitivo .capitolo-testa h2{color:var(--bianco)}
@@ -261,6 +262,7 @@ section{position:relative}
   padding:clamp(50px,8vh,80px) var(--pad);
 }
 .tabacchi .capitolo-inner{display:flex;align-items:center;gap:clamp(18px,4vw,50px);flex-wrap:wrap}
+.tabacchi .capitolo-inner > div:last-child{flex:1 1 260px;min-width:0}
 .tabacchi .tiglio{
   flex:none;width:clamp(72px,10vw,120px);aspect-ratio:1;
   background:var(--bianco);color:var(--inchiostro);
@@ -309,6 +311,55 @@ section{position:relative}
 .scheda .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .scheda .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--blu-tinta);color:var(--blu)}
 
+/* ============ MENÙ — legno scuro e pannelli chiari, come il menù stampato ============ */
+.menu{background:#2a1c15;color:#e9e2d6;padding:clamp(80px,12vh,140px) var(--pad)}
+.menu .capitolo-inner{max-width:1240px;margin:0 auto}
+.menu-testa{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:clamp(28px,5vh,50px)}
+.menu-testa .sopratitolo{color:var(--giallo);opacity:1;margin-bottom:10px}
+.menu-testa h2{text-transform:uppercase;font-size:clamp(30px,5vw,64px);color:var(--bianco)}
+.menu .btn-pieno{background:var(--giallo);color:#2a1c15}
+.menu .btn-pieno:hover,.menu .btn-pieno:focus-visible{background:var(--bianco);color:var(--blu)}
+.pannelli{display:grid;grid-template-columns:1fr;gap:clamp(14px,2vw,22px)}
+@media (min-width:900px){.pannelli{grid-template-columns:1fr 1fr}.pannello-pizze{grid-column:1/-1}}
+.pannello{background:#e7e0d3;color:#2a1c15;border-radius:6px;padding:clamp(20px,3vw,32px)}
+.pannello h3{font-size:clamp(22px,2.6vw,32px);text-transform:uppercase;color:var(--blu);margin-bottom:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pannello .menu-lista + h3{margin-top:26px}
+.pannello h3 span{font-family:"Public Sans",sans-serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#7a6d5f}
+.menu-lista{list-style:none;display:flex;flex-direction:column}
+.menu-lista.due{display:grid;grid-template-columns:1fr;column-gap:clamp(20px,4vw,56px)}
+@media (min-width:760px){.menu-lista.due{grid-template-columns:1fr 1fr}}
+.menu-lista li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:9px 0;border-top:1px solid rgba(42,28,21,.14)}
+.menu-lista b{font-weight:700;font-size:15px}
+.menu-lista small{display:block;color:#6b5f52;font-size:13px;line-height:1.35;margin-top:1px}
+.menu-lista em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap;font-size:15px}
+.menu-lista li.casa b{color:var(--rosso)}
+.menu-lista li.casa b::after{content:"la pizza della casa";font-family:"Public Sans",sans-serif;font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--rosso);margin-left:8px}
+.menu-nota{margin-top:14px;font-size:13px;color:#6b5f52}
+.altre > summary{list-style:none;cursor:pointer;margin-top:10px;padding:14px 18px;border-radius:999px;background:var(--blu);color:var(--bianco);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.altre > summary::-webkit-details-marker{display:none}
+.altre[open] > summary{display:none}
+@media (min-width:760px){.altre > summary{display:none}}
+.menu-piede{margin-top:clamp(22px,4vh,36px);font-size:14px;color:rgba(233,226,214,.7);max-width:70ch}
+
+/* servizi della pizzeria */
+.servizi-lista{list-style:none;display:flex;flex-direction:column}
+.servizi-lista li{padding:16px 0;border-top:1px solid var(--linea)}
+.servizi-lista li:last-child{border-bottom:1px solid var(--linea)}
+.servizi-lista b{display:block;font-weight:700}
+.servizi-lista small{display:block;color:var(--grigio);font-size:14px;margin-top:3px}
+.servizi-lista a{color:var(--blu);font-weight:600}
+
+/* card di testo nel mosaico della colazione */
+.scheda-testo{display:grid;place-items:center;padding:24px;text-align:center}
+@media (max-width:640px){.mosaico .scheda-testo{grid-column:1/-1;aspect-ratio:auto;min-height:0}}
+.scheda-testo p{font-size:15px;line-height:1.5;color:var(--inchiostro)}
+.scheda-testo b{display:block;font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:13px;letter-spacing:.14em;color:var(--blu);margin-bottom:8px}
+.scheda-testo .script{display:block;color:var(--rosso);font-size:30px;margin-top:8px}
+
+/* chip dei servizi nella fascia tabacchi */
+.tabacchi .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.tabacchi .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.1);color:var(--bianco)}
+
 /* ============ FOOTER ============ */
 footer{
   background:var(--blu-scuro);color:rgba(255,255,255,.75);
@@ -317,6 +368,7 @@ footer{
 }
 footer .marchio{color:var(--bianco)}
 footer ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+footer .marchio,footer .marchio b{white-space:normal} /* nel footer il marchio va a capo, non sfora */
 footer a{display:inline-block;padding:6px 0}
 footer a:hover{color:var(--bianco)}
 .voto p a,.nota a,.dove address a{display:inline-block;padding:8px 0}
@@ -328,7 +380,6 @@ footer a:hover{color:var(--bianco)}
 </style>
 </head>
 <body>
-
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs><linearGradient id="mezza"><stop offset="50%" stop-color="#f2b429"/><stop offset="50%" stop-color="rgba(23,32,58,.18)"/></linearGradient></defs>
 </svg>
@@ -342,15 +393,15 @@ footer a:hover{color:var(--bianco)}
   <nav aria-label="principale">
     <ul class="nav-voci">
       <li class="nascondi-m"><a class="voce" href="#colazione">Colazione</a></li>
-      <li class="nascondi-m"><a class="voce" href="#pranzo">Pranzo</a></li>
+      <li class="nascondi-m"><a class="voce" href="#menu">Menù</a></li>
       <li class="nascondi-m"><a class="voce" href="#aperitivo">Aperitivo</a></li>
-      <li class="nascondi-m"><a class="voce" href="#dove">Dove</a></li>
+      <li class="nascondi-m"><a class="voce" href="#dove">Dove siamo</a></li>
       <li><a class="nav-tel" href="tel:+390362528451"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1L6.6 10.8z" fill="currentColor"/></svg><span class="num">0362 528451</span></a></li>
     </ul>
   </nav>
   <div class="nav-giorno" aria-hidden="true">
     <div class="pieno" id="nav-pieno"></div>
-    <i class="tacca" data-tappa="colazione"></i><i class="tacca" data-tappa="pranzo"></i><i class="tacca" data-tappa="aperitivo"></i><i class="tacca" data-tappa="dove"></i>
+    <i class="tacca" data-tappa="colazione"></i><i class="tacca" data-tappa="pizzeria"></i><i class="tacca" data-tappa="aperitivo"></i><i class="tacca" data-tappa="dove"></i>
     <div class="punto" id="nav-punto"></div>
   </div>
 </header>
@@ -369,10 +420,10 @@ footer a:hover{color:var(--bianco)}
     </p>
 
     <div class="hero-basso">
-      <p class="lead">Il bar sulla Nazionale dei Giovi, aperto <strong>dalle 5:30 alle 21:30</strong>: colazione, pizza a pranzo, aperitivo con i frittini. E il tabacchi, tutto il giorno.</p>
+      <p class="lead">Colazione dalle 5:30, <strong>pizza tradizionale</strong> in sala, da asporto o a domicilio, aperitivo con i frittini. Con tabaccheria e ricevitoria, sulla Nazionale dei Giovi.</p>
       <div class="hero-azioni">
-        <a class="btn btn-pieno" href="#aperitivo">Aperitivo a 12 €</a>
-        <a class="btn btn-vuoto" href="#dove">Come arrivare</a>
+        <a class="btn btn-pieno" href="tel:+390362528451">Ordina: 0362 528451</a>
+        <a class="btn btn-vuoto" href="#menu">Guarda il menù</a>
       </div>
     </div>
 
@@ -385,7 +436,7 @@ footer a:hover{color:var(--bianco)}
       <div class="binario" aria-hidden="true"><div class="pieno" id="pieno"></div><div class="cursore" id="cursore"></div></div>
       <ul class="tappe">
         <li><a href="#colazione"><time datetime="05:30">5:30</time><span>Colazione</span></a></li>
-        <li><a href="#pranzo"><time datetime="12:00">12:00</time><span>Pranzo</span></a></li>
+        <li><a href="#pizzeria"><time datetime="12:00">12:00</time><span>Pizzeria</span></a></li>
         <li><a href="#aperitivo"><time datetime="18:00">18:00</time><span>Aperitivo</span></a></li>
         <li><a href="#dove"><time datetime="21:30">21:30</time><span>Chiusura</span></a></li>
       </ul>
@@ -399,41 +450,180 @@ footer a:hover{color:var(--bianco)}
     <div class="capitolo-testa svela">
       <div class="ora">5<sup>30</sup></div>
       <h2>Colazione</h2>
-      <p>Si apre quando fuori è ancora buio. <strong>Cappuccino e brioche</strong> per chi va al lavoro, marocchino con la Nutella per chi ha dieci minuti in più, waffle per chi non ha fretta.</p>
+      <p>Il bar apre alle 5:30, quando la Nazionale è ancora vuota. <strong>Cappuccino e brioche</strong> per chi va al lavoro; marocchino, ginseng e waffle per chi ha il tempo di sedersi.</p>
     </div>
     <div class="doppia">
       <div class="foto alta svela"><img src="assets/img/post-06-2025-08-06b.jpg" alt="Cappuccino con il cuore nella schiuma e brioche farcita sul piattino giallo" width="480" height="640" loading="lazy"></div>
       <div class="mosaico">
         <div class="foto svela"><img src="assets/img/post-02-2025-08-31.jpg" alt="Marocchino con Nutella nel bicchierino di vetro sul piattino giallo" width="481" height="640" loading="lazy"></div>
         <div class="foto alta svela"><img src="assets/img/post-04-2025-08-09.jpg" alt="Waffle con zucchero a velo, cioccolato e fragola" width="481" height="640" loading="lazy"></div>
-        <div class="foto alta svela" style="display:grid;place-items:center;padding:24px;text-align:center">
-          <p style="font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(18px,2vw,24px);line-height:1.15;color:var(--blu)">Cappuccino, marocchino, ginseng.<br><span class="script" style="color:var(--rosso);font-size:1.5em">e la brioche calda</span></p>
+        <div class="foto alta scheda-testo svela">
+          <p><b>Caffetteria completa</b>Espresso, cappuccino, marocchino, ginseng.<br>Brioche, waffle e dolci al banco.<br><span class="script">dalle 5:30</span></p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 12:00 PRANZO -->
-<section class="capitolo pranzo" id="pranzo">
+<!-- 12:00 PIZZERIA -->
+<section class="capitolo pizzeria" id="pizzeria">
   <div class="capitolo-inner">
     <div class="capitolo-testa svela">
       <div class="ora">12<sup>00</sup></div>
-      <h2>Pranzo e pizza</h2>
-      <p>La pizza esce dal forno anche a mezzogiorno. <strong>Trancio con patatine</strong> per la pausa veloce, tavolo fuori per chi vuole starci un po'. Ci sono anche le insalatone.</p>
+      <h2>Pizzeria</h2>
+      <p>Pizza tradizionale e molto altro: <strong>44 pizze</strong>, calzoni, focacce farcite e panini, dal forno alla sala. La pizza della casa porta il nome del locale, la <strong>Fiftynine</strong>: salame piccante, prosciutto cotto, wurstel e salsiccia.</p>
     </div>
     <div class="doppia">
       <div>
-        <ul class="lista-piatti">
-          <li><div><b>Pizza a pranzo</b><small>Tranci, con patatine fritte</small></div><em>menù</em></li>
-          <li><div><b>Fritti</b><small>Panzerottini, arancini, olive, mozzarelline</small></div></li>
-          <li><div><b>Insalatone</b><small>L'opzione vegetariana</small></div></li>
-          <li><div><b>Tavoli all'aperto</b><small>Sulla Nazionale dei Giovi, con la tenda</small></div></li>
+        <ul class="servizi-lista">
+          <li><b>In sala, su prenotazione</b><small>Anche per gruppi: organizziamo pizzate su misura.</small></li>
+          <li><b>Da asporto</b><small>Si ordina al telefono, si ritira al banco.</small></li>
+          <li><b>Consegna a domicilio</b><small>Chiama il <a href="tel:+390362528451">0362 528451</a> e arriva a casa.</small></li>
+          <li><b>Menù bimbi a 8 €</b><small>Pizza baby, cotoletta, wurstel o hamburger, con patatine e bibita.</small></li>
         </ul>
-        <p class="nota">Il menù del giorno è al banco. Per i gruppi, meglio una telefonata: <a href="tel:+390362528451" style="font-weight:600;color:var(--blu)">0362 528451</a>.</p>
       </div>
       <div class="foto larga svela"><img src="assets/img/post-03-2025-08-24.jpg" alt="Piatto con tranci di pizza margherita, patatine fritte, olive e panzerottini, sul bancone davanti alla vetrina" width="640" height="480" loading="lazy"></div>
     </div>
+  </div>
+</section>
+
+<!-- IL MENÙ — nei colori del menù stampato: legno scuro e pannelli chiari -->
+<section class="menu" id="menu">
+  <div class="capitolo-inner">
+    <div class="menu-testa svela">
+      <div>
+        <p class="sopratitolo">Il menù</p>
+        <h2>Dal forno alla sala</h2>
+      </div>
+      <a class="btn btn-pieno" href="assets/menu-bar-tabacchi-fiftynine.pdf" target="_blank" rel="noopener">Scarica il menù (PDF)</a>
+    </div>
+
+    <div class="pannelli">
+      <article class="pannello pannello-pizze svela">
+        <h3>Pizze <span>44</span></h3>
+        <ul class="menu-lista due">
+          <li class="casa"><div><b>Fiftynine</b><small>pomodoro, mozzarella, salame piccante, prosciutto cotto, wurstel e salsiccia</small></div><em>12,00</em></li>
+          <li><div><b>Margherita</b><small>pomodoro e mozzarella</small></div><em>7,00</em></li>
+          <li><div><b>Marinara</b><small>pomodoro, origano, olio extravergine e aglio fresco</small></div><em>5,50</em></li>
+          <li><div><b>Diavola</b><small>pomodoro, mozzarella e salame piccante</small></div><em>8,00</em></li>
+          <li><div><b>Funghi</b><small>pomodoro, mozzarella e funghi champignon</small></div><em>8,00</em></li>
+          <li><div><b>Prosciutto</b><small>pomodoro, mozzarella e prosciutto cotto</small></div><em>8,00</em></li>
+          <li><div><b>Pancetta croccante</b><small>pomodoro, mozzarella e pancetta croccante</small></div><em>8,00</em></li>
+          <li><div><b>Pugliese</b><small>pomodoro, mozzarella e cipolla</small></div><em>8,00</em></li>
+          <li><div><b>Rucola</b><small>pomodoro, mozzarella e rucola</small></div><em>8,00</em></li>
+          <li><div><b>Wurstel</b><small>pomodoro, mozzarella e wurstel</small></div><em>8,00</em></li>
+          <li><div><b>Milano</b><small>pomodoro, mozzarella e salame dolce</small></div><em>8,00</em></li>
+          <li><div><b>Napoli</b><small>pomodoro, mozzarella, acciughe e origano</small></div><em>8,50</em></li>
+        </ul>
+        <details class="altre" open>
+          <summary>Tutte le 44 pizze</summary>
+          <ul class="menu-lista due">
+          <li><div><b>Siciliana</b><small>pomodoro, acciughe, capperi, olive e origano</small></div><em>8,50</em></li>
+          <li><div><b>Quattro formaggi rossa</b><small>pomodoro, mozzarella, zola, brie, taleggio e grana</small></div><em>9,00</em></li>
+          <li><div><b>Friarielli</b><small>pomodoro, mozzarella, friarielli e salsiccia</small></div><em>9,00</em></li>
+          <li><div><b>Quattro stagioni</b><small>pomodoro, mozzarella, prosciutto cotto, funghi champignon, carciofini e salame piccante</small></div><em>9,00</em></li>
+          <li><div><b>Affumicata</b><small>pomodoro, mozzarella, speck e scamorza</small></div><em>9,00</em></li>
+          <li><div><b>Bufala</b><small>pomodoro, mozzarella di bufala e olio extravergine d'oliva</small></div><em>9,00</em></li>
+          <li><div><b>Capricciosa</b><small>pomodoro, mozzarella, prosciutto cotto, funghi champignon, carciofini e olive</small></div><em>9,00</em></li>
+          <li><div><b>Crudo</b><small>pomodoro, mozzarella e prosciutto crudo</small></div><em>9,00</em></li>
+          <li><div><b>Parmigiana</b><small>pomodoro, mozzarella, prosciutto cotto, melanzane e grana</small></div><em>9,00</em></li>
+          <li><div><b>Prosciutto e funghi</b><small>pomodoro, mozzarella, prosciutto cotto e funghi champignon</small></div><em>9,00</em></li>
+          <li><div><b>Wurstel e patatine</b><small>pomodoro, mozzarella, wurstel e patatine fritte</small></div><em>9,00</em></li>
+          <li><div><b>3 P</b><small>pomodoro, mozzarella, pancetta, prosciutto cotto e grana</small></div><em>9,00</em></li>
+          <li><div><b>Ortolana</b><small>pomodoro, mozzarella, peperoni, zucchine, melanzane, funghi champignon e carciofini</small></div><em>9,50</em></li>
+          <li><div><b>Porcini</b><small>pomodoro, mozzarella e funghi porcini</small></div><em>9,50</em></li>
+          <li><div><b>Tonno e cipolla</b><small>pomodoro, mozzarella, tonno e cipolla</small></div><em>9,50</em></li>
+          <li><div><b>Salpi</b><small>pomodoro, mozzarella, salsiccia e patatine</small></div><em>10,00</em></li>
+          <li><div><b>Piccante</b><small>pomodoro, mozzarella, zola, 'nduja e salame piccante</small></div><em>10,00</em></li>
+          <li><div><b>Romana</b><small>pomodoro, mozzarella, acciughe, capperi, olive e origano</small></div><em>10,50</em></li>
+          <li><div><b>Golosa</b><small>pomodoro, mozzarella, salsiccia, grana e peperoni al forno</small></div><em>10,50</em></li>
+          <li><div><b>Sfiziosa</b><small>pomodoro, mozzarella, pancetta, zola e zucchine</small></div><em>10,50</em></li>
+          <li><div><b>Mare</b><small>pomodoro, mozzarella, gamberi e zucchine</small></div><em>11,00</em></li>
+          <li><div><b>Gamberi</b><small>pomodoro, mozzarella, gamberi e rucola</small></div><em>11,00</em></li>
+          <li><div><b>Special One</b><small>pomodoro, mozzarella, trevisana, pancetta e zola</small></div><em>11,00</em></li>
+          <li><div><b>Valtellina</b><small>pomodoro, mozzarella, bresaola, rucola e grana a scaglie</small></div><em>12,00</em></li>
+          <li><div><b>Far West</b><small>mozzarella, mozzarella di bufala, zucchine e prosciutto crudo</small></div><em>12,00</em></li>
+          <li><div><b>Campagnola</b><small>pomodoro, mozzarella, taleggio, funghi porcini e speck</small></div><em>12,00</em></li>
+          <li><div><b>Primavera</b><small>pomodoro, mozzarella, prosciutto crudo, grana a scaglie, rucola e pomodorini</small></div><em>12,00</em></li>
+          <li><div><b>Buona</b><small>pomodoro, mozzarella, funghi porcini, pancetta, rucola e zola</small></div><em>13,00</em></li>
+          <li><div><b>Aria</b><small>pomodoro, mozzarella, funghi porcini e gamberi</small></div><em>13,00</em></li>
+          <li><div><b>Pesto</b><small>mozzarella, pesto, pancetta, olive nere e pomodorini</small></div><em>13,00</em></li>
+          <li><div><b>Deliziosa</b><small>pomodoro, mozzarella di bufala, prosciutto crudo e rucola</small></div><em>13,50</em></li>
+          <li><div><b>Saporita</b><small>pomodoro, mozzarella, funghi porcini, salsiccia, prosciutto cotto e brie</small></div><em>13,50</em></li>
+          </ul>
+        </details>
+        <p class="menu-nota">Pizze baby (margherita 5,50 · wurstel, salsiccia o prosciutto cotto 6,50). Aggiunta ingredienti +1,00.</p>
+      </article>
+
+      <article class="pannello svela">
+        <h3>Calzoni</h3>
+        <ul class="menu-lista">
+          <li><div><b>Liscio</b><small>pomodoro, mozzarella e prosciutto cotto</small></div><em>8,50</em></li>
+          <li><div><b>Spicy</b><small>pomodoro, mozzarella, salame piccante e 'nduja</small></div><em>9,00</em></li>
+          <li><div><b>Farcito</b><small>pomodoro, mozzarella, prosciutto cotto, funghi champignon, carciofini e olive</small></div><em>9,50</em></li>
+          <li><div><b>Vegetariano</b><small>pomodoro, mozzarella, melanzane, zucchine, peperoni, carciofini e funghi champignon</small></div><em>10,50</em></li>
+        </ul>
+        <h3>Focacce</h3>
+        <ul class="menu-lista">
+          <li><div><b>Bianca / Rossa</b><small>olio, sale e origano / pomodoro, origano e olio</small></div><em>4,00 / 5,00</em></li>
+          <li><div><b>Vegana</b><small>melanzane, zucchine, peperoni, funghi champignon, olive e carciofini</small></div><em>10,00</em></li>
+          <li><div><b>Bresaolina</b><small>bresaola, mozzarella di bufala, rucola e pomodorini</small></div><em>12,00</em></li>
+          <li><div><b>Light</b><small>mozzarella di bufala, rucola, pomodorini e prosciutto crudo</small></div><em>13,00</em></li>
+          <li><div><b>Crudaiola</b><small>prosciutto crudo, rucola e grana a scaglie</small></div><em>13,00</em></li>
+        </ul>
+      </article>
+
+      <article class="pannello svela">
+        <h3>Sfiziosità</h3>
+        <ul class="menu-lista">
+          <li><div><b>Frittini misti</b></div><em>7,00</em></li>
+          <li><div><b>Gyoza</b><small>6 pezzi 4,00 · 10 pezzi 6,00</small></div><em>da 4,00</em></li>
+          <li><div><b>Bao zi</b><small>4 pezzi</small></div><em>4,50</em></li>
+          <li><div><b>Involtini primavera</b><small>8 pezzi</small></div><em>4,50</em></li>
+          <li><div><b>Polpette di polipo takoyaki</b><small>6 pezzi</small></div><em>4,50</em></li>
+          <li><div><b>Patatine fritte</b></div><em>4,50</em></li>
+          <li><div><b>Patate dippers</b></div><em>4,50</em></li>
+          <li><div><b>Crocchette di patate</b></div><em>4,50</em></li>
+          <li><div><b>Anellini di cipolla</b></div><em>4,50</em></li>
+          <li><div><b>Panzerottini</b></div><em>4,50</em></li>
+          <li><div><b>Triangoli allo speck</b></div><em>4,50</em></li>
+        </ul>
+      </article>
+
+      <article class="pannello svela">
+        <h3>Panini <span>focaccia o ciabatta / panino</span></h3>
+        <ul class="menu-lista">
+          <li><div><b>Toast</b><small>piccolo / grande</small></div><em>3,50 / 4,50</em></li>
+          <li><div><b>Mortadella e fontina</b></div><em>6,50 / 5,50</em></li>
+          <li><div><b>Salame Milano e fontina</b></div><em>6,50 / 5,50</em></li>
+          <li><div><b>Cotto e fontina</b></div><em>6,50 / 5,50</em></li>
+          <li><div><b>Spianata piccante e fontina</b></div><em>6,50 / 5,50</em></li>
+          <li><div><b>Vegetariano</b><small>zucchine e melanzane grigliate, mozzarella di bufala e peperoni al forno</small></div><em>6,50 / 5,50</em></li>
+          <li><div><b>Crudo e rucola</b></div><em>7,00 / 6,00</em></li>
+          <li><div><b>Bologna</b><small>mortadella, insalata e maionese</small></div><em>7,00 / 6,00</em></li>
+          <li><div><b>Salame Milano</b><small>salame dolce, insalata, salsa rosa e cipolla croccante</small></div><em>7,50 / 6,50</em></li>
+          <li><div><b>Crudo e zucchine</b><small>prosciutto crudo, zucchine, mozzarella di bufala e salsa rosa</small></div><em>7,50 / 6,50</em></li>
+          <li><div><b>Cotto e zucchine</b><small>prosciutto cotto, zucchine, mozzarella di bufala e maionese</small></div><em>7,50 / 6,50</em></li>
+          <li><div><b>Cotoletta</b><small>cotoletta, insalata, pomodorini e maionese — solo panino</small></div><em>6,50</em></li>
+          <li><div><b>Tonno</b><small>tonno, maionese, insalata e pomodorini — solo panino</small></div><em>6,50</em></li>
+        </ul>
+        <p class="menu-nota">Aggiunta ingredienti +1,00 · salse +0,50.</p>
+      </article>
+
+      <article class="pannello svela">
+        <h3>Bevande</h3>
+        <ul class="menu-lista">
+          <li><div><b>Acqua naturale o frizzante</b><small>50 cl</small></div><em>1,20</em></li>
+          <li><div><b>Tè, Fanta, Sprite, Lemon Soda, Coca-Cola</b><small>33 cl</small></div><em>2,50</em></li>
+          <li><div><b>Red Bull</b><small>33 cl</small></div><em>3,50</em></li>
+          <li><div><b>Birra alla spina</b><small>piccola / media</small></div><em>3,00 / 5,00</em></li>
+          <li><div><b>Beck's, Heineken, Moretti</b><small>33 cl</small></div><em>3,50</em></li>
+          <li><div><b>Tennent's, Corona, Ceres, Tsingtao, Leffe</b><small>33 cl</small></div><em>4,50</em></li>
+        </ul>
+      </article>
+    </div>
+
+    <p class="menu-piede svela">Prezzi del menù in vigore da gennaio 2026. Gli allergeni di ogni piatto sono indicati sul menù completo; il personale è a disposizione per ogni informazione.</p>
   </div>
 </section>
 
@@ -443,14 +633,14 @@ footer a:hover{color:var(--bianco)}
     <div class="capitolo-testa svela">
       <div class="ora">18<sup>00</sup></div>
       <h2>Aperitivo</h2>
-      <p>Dalle sei il bancone cambia faccia. <strong>Un drink a scelta e il misto di frittini</strong>, con i gyoza che sono diventati il piatto che si chiede per nome.</p>
+      <p>Dalle 18 il bancone cambia registro: <strong>un cocktail a scelta e il piatto di frittini misti</strong>, con i gyoza accanto ai panzerottini. Dentro, o ai tavoli sulla Nazionale.</p>
     </div>
 
     <div class="formula svela">
       <div class="prezzo">12<sup>€</sup></div>
       <div>
-        <h3>Formula special</h3>
-        <p>Un cocktail a scelta dalla lista più il piatto di frittini misti: patatine, anelli di cipolla, panzerottini, arancini e gyoza. Uno solo, o due da dividere.</p>
+        <h3>Formula aperitivo</h3>
+        <p>Un cocktail dalla lista e il piatto di frittini misti: patatine, anellini di cipolla, panzerottini, crocchette e gyoza.</p>
       </div>
     </div>
 
@@ -460,30 +650,30 @@ footer a:hover{color:var(--bianco)}
         <ul class="lista-piatti">
           <li><div><b>Aperol Spritz</b><small>Aperol, prosecco e soda</small></div><em>6 €</em></li>
           <li><div><b>Campari Spritz</b><small>Campari, prosecco e soda</small></div><em>6 €</em></li>
-          <li><div><b>Negroni</b><small>Vermouth rosso, bitter e gin</small></div><em>7 €</em></li>
-          <li><div><b>Sbagliato</b><small>Vermouth rosso, bitter e spumante</small></div><em>7 €</em></li>
-          <li><div><b>Americano</b><small>Vermouth rosso, bitter e soda</small></div><em>7 €</em></li>
-          <li><div><b>Milano Torino</b><small>Vermouth rosso e bitter</small></div><em>7 €</em></li>
-          <li><div><b>Gin Tonic</b><small>Base di gin e tonica</small></div><em>7 €</em></li>
-          <li><div><b>Cuba Libre</b><small>Rum e cola</small></div><em>7 €</em></li>
-          <li><div><b>Vodka Lemon</b><small>Vodka e limonata</small></div><em>7 €</em></li>
+          <li><div><b>Negroni</b><small>vermouth rosso, bitter e gin</small></div><em>7 €</em></li>
+          <li><div><b>Sbagliato</b><small>vermouth rosso, bitter e spumante</small></div><em>7 €</em></li>
+          <li><div><b>Americano</b><small>vermouth rosso, bitter e soda</small></div><em>7 €</em></li>
+          <li><div><b>Milano Torino</b><small>vermouth rosso e bitter</small></div><em>7 €</em></li>
+          <li><div><b>Gin Tonic</b><small>gin e acqua tonica</small></div><em>7 €</em></li>
+          <li><div><b>Cuba Libre</b><small>rum e cola</small></div><em>7 €</em></li>
+          <li><div><b>Vodka Lemon</b><small>vodka e limonata</small></div><em>7 €</em></li>
         </ul>
-        <p class="nota">Birre in bottiglia da 3,50 €, alla spina piccola 5 € e media 6 €.</p>
+        <p class="nota">Birra alla spina 3 € la piccola, 5 € la media. In bottiglia da 3,50 €.</p>
       </div>
       <div class="svela">
         <h3>Frittini</h3>
         <ul class="lista-piatti">
-          <li><div><b>Frittini misti</b><small>Il piatto della formula</small></div><em>7 €</em></li>
+          <li><div><b>Frittini misti</b><small>il piatto della formula</small></div><em>7 €</em></li>
           <li><div><b>Gyoza</b><small>6 pezzi 4 € · 10 pezzi 6 €</small></div><em>da 4 €</em></li>
-          <li><div><b>Patatine fritte</b></div><em>4,50 €</em></li>
-          <li><div><b>Patate dippers</b></div><em>4,50 €</em></li>
-          <li><div><b>Arancini</b></div><em>4,50 €</em></li>
+          <li><div><b>Bao zi</b><small>4 pezzi</small></div><em>4,50 €</em></li>
+          <li><div><b>Takoyaki</b><small>polpette di polipo, 6 pezzi</small></div><em>4,50 €</em></li>
+          <li><div><b>Involtini primavera</b><small>8 pezzi</small></div><em>4,50 €</em></li>
           <li><div><b>Panzerottini</b></div><em>4,50 €</em></li>
+          <li><div><b>Crocchette di patate</b></div><em>4,50 €</em></li>
+          <li><div><b>Anellini di cipolla</b></div><em>4,50 €</em></li>
           <li><div><b>Triangoli allo speck</b></div><em>4,50 €</em></li>
-          <li><div><b>Melanzane fritte</b></div><em>4,50 €</em></li>
-          <li><div><b>Frittelle gusto pizzaiola</b></div><em>4,50 €</em></li>
         </ul>
-        <p class="nota">Prezzi della lista in bar. Possono cambiare: quella al banco vale più di questa pagina.</p>
+        <p class="nota">La lista dei cocktail è quella esposta al bar.</p>
       </div>
     </div>
 
@@ -500,8 +690,16 @@ footer a:hover{color:var(--bianco)}
   <div class="capitolo-inner svela">
     <div class="tiglio" aria-hidden="true">T</div>
     <div>
-      <h2>Tabacchi, tutto il giorno</h2>
-      <p>La tabaccheria segue l'orario del bar: <strong>dalle 5:30 alle 21:30</strong>, senza pausa. Il primo caffè e l'ultimo pacchetto della giornata si prendono allo stesso banco.</p>
+      <h2>Tabaccheria e ricevitoria</h2>
+      <p>Con lo stesso orario del bar, <strong>dalle 5:30 alle 21:30</strong>. Tabacchi e sigarette elettroniche, pagamenti e ricariche, Gratta e Vinci e SuperEnalotto.</p>
+      <ul class="servizi">
+        <li>Tabacchi</li>
+        <li>Sigarette elettroniche</li>
+        <li>Pagamenti</li>
+        <li>Ricariche</li>
+        <li>Gratta e Vinci</li>
+        <li>SuperEnalotto</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -545,14 +743,16 @@ footer a:hover{color:var(--bianco)}
     </div>
     <div class="scheda svela">
       <dl>
-        <dt>Orario</dt><dd>5:30 – 21:30<small>Bar e tabacchi, orario continuato</small></dd>
-        <dt>Aperitivo</dt><dd>dalle 18:00<small>Formula special a 12 €</small></dd>
-        <dt>Spesa</dt><dd>10 – 20 € a persona<small>indicata da chi recensisce su Google</small></dd>
-        <dt>Telefono</dt><dd><a href="tel:+390362528451">0362 528451</a></dd>
+        <dt>Orario</dt><dd>5:30 – 21:30<small>Orario continuato. Gli orari estivi e invernali e le chiusure sono aggiornati su Instagram.</small></dd>
+        <dt>Pizzeria</dt><dd>In sala, da asporto, a domicilio<small>Sala su prenotazione: <a href="tel:+390362528451">0362 528451</a></small></dd>
+        <dt>Aperitivo</dt><dd>dalle 18:00<small>Formula cocktail e frittini a 12 €</small></dd>
+        <dt>Spesa</dt><dd>10 – 20 € a persona<small>indicazione di chi recensisce su Google</small></dd>
       </dl>
       <ul class="servizi">
         <li>Tavoli all'aperto</li>
-        <li>Si mangia al bar</li>
+        <li>Consegna a domicilio</li>
+        <li>Asporto</li>
+        <li>Menù bimbi</li>
         <li>Cani ammessi</li>
         <li>Tabacchi</li>
       </ul>
@@ -563,15 +763,16 @@ footer a:hover{color:var(--bianco)}
 <footer>
   <a class="marchio" href="#top">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18l-8 9v6h4v2H7v-2h4v-6L3 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-    <b>Bar Tabacchi <i>59</i> — fiftynine</b>
+    <b>Bar Tabacchi <i>59</i> — fiftynine e pizzeria</b>
   </a>
   <ul>
-    <li>Via Nazionale dei Giovi 59, Cesano Maderno</li>
-    <li>Aperto 5:30 – 21:30</li>
+    <li>Via Nazionale dei Giovi 59, Cesano Maderno (MB)</li>
+    <li>Aperto dalle 5:30 alle 21:30</li>
   </ul>
   <ul>
     <li><a href="tel:+390362528451">0362 528451</a></li>
     <li><a href="https://www.instagram.com/bartabacchi__fiftynine/" target="_blank" rel="noopener">@bartabacchi__fiftynine</a></li>
+    <li><a href="assets/menu-bar-tabacchi-fiftynine.pdf" target="_blank" rel="noopener">Menù in PDF</a></li>
   </ul>
 </footer>
 
@@ -593,6 +794,10 @@ footer a:hover{color:var(--bianco)}
   adattaTitolo();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(adattaTitolo);
   window.addEventListener("resize", adattaTitolo);
+
+  /* ---- pizze: sul telefono ne restano aperte dodici, le altre a richiesta ---- */
+  var altre = document.querySelector(".altre");
+  if (altre && window.innerWidth < 760) altre.removeAttribute("open");
 
   /* ---- nav: bianca appena si lascia l'insegna ---- */
   var nav = document.getElementById("nav");
@@ -638,7 +843,10 @@ footer a:hover{color:var(--bianco)}
 
   /* ================= MOTION ================= */
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!window.gsap || !window.ScrollTrigger || reduced) return;
+  // ?fermo=1 spegne la motion: serve a controllare impaginazione e testi
+  // in un pannello che non fa girare requestAnimationFrame.
+  var fermo = /[?&]fermo=1/.test(location.search);
+  if (!window.gsap || !window.ScrollTrigger || reduced || fermo) return;
   gsap.registerPlugin(ScrollTrigger);
 
   // Tab caricato in background: al ritorno visibile i trigger si ricalcolano
@@ -715,6 +923,14 @@ footer a:hover{color:var(--bianco)}
     gsap.from(lista.querySelectorAll("li"), {
       autoAlpha:0, x:-16, duration:.5, stagger:.06, ease:"power2.out",
       scrollTrigger:{trigger:lista, start:"top 85%"}
+    });
+  });
+
+  /* ---- servizi e chip: a scaletta ---- */
+  gsap.utils.toArray(".servizi-lista, .tabacchi .servizi, .scheda .servizi").forEach(function(lista){
+    gsap.from(lista.querySelectorAll("li"), {
+      autoAlpha:0, y:14, duration:.5, stagger:.07, ease:"power2.out",
+      scrollTrigger:{trigger:lista, start:"top 88%"}
     });
   });
 
