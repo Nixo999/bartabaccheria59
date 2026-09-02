@@ -301,6 +301,10 @@ section{position:relative}
 /* ============ RECENSIONI ============ */
 .recensioni .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px);align-items:start}
 @media (min-width:900px){.recensioni .capitolo-inner{grid-template-columns:.8fr 1.2fr}}
+/* La sezione era l'unica senza un titolo: il 4,4 e` grosso ma non e` un H2,
+   e chi scorre in fretta — o legge con uno screen reader — non trovava
+   l'aggancio. Piccolo di proposito: il numero resta la cosa che si vede. */
+.titolo-minore{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;color:var(--grigio);font-family:"Public Sans",sans-serif}
 .voto{display:flex;flex-direction:column;gap:8px}
 .voto .numero{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(80px,14vw,170px);line-height:.85;letter-spacing:-.05em;color:var(--blu)}
 .voto .stelle{display:flex;gap:4px;color:var(--giallo)}
@@ -346,9 +350,9 @@ section{position:relative}
 .pannelli{display:grid;grid-template-columns:1fr;gap:clamp(14px,2vw,22px);align-items:start}
 @media (min-width:900px){.pannelli{grid-template-columns:1fr 1fr}.pannello-pizze{grid-column:1/-1}}
 .pannello{background:var(--blu-tinta);color:var(--inchiostro);border-radius:var(--raggio);padding:clamp(20px,3vw,32px)}
-.pannello h3{font-size:clamp(22px,2.6vw,32px);text-transform:uppercase;color:var(--blu);margin-bottom:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.pannello .menu-lista + h3{margin-top:26px}
-.pannello h3 span{font-family:"Public Sans",sans-serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--grigio)}
+.pannello h2,.pannello h3{font-size:clamp(22px,2.6vw,32px);text-transform:uppercase;color:var(--blu);margin-bottom:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pannello .menu-lista + h2,.pannello .menu-lista + h3{margin-top:26px}
+.pannello h2 span,.pannello h3 span{font-family:"Public Sans",sans-serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--grigio)}
 .menu-lista{list-style:none;display:flex;flex-direction:column}
 .menu-lista.due{display:grid;grid-template-columns:1fr;column-gap:clamp(20px,4vw,56px)}
 @media (min-width:760px){.menu-lista.due{grid-template-columns:1fr 1fr}}
