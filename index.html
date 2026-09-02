@@ -82,7 +82,11 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 @media (max-width:720px){
   .nav-voci .nascondi-m{display:none}
 }
-@media (max-width:480px){
+@media (max-width:560px){
+  /* marchio e pillola non ci stanno affiancati: si stringono entrambi */
+  .marchio b{font-size:12px}
+  .marchio svg{width:22px;height:22px}
+  .nav-tel{padding:10px 16px;font-size:12px}
   .nav-tel .num{display:none}
   .nav-tel::after{content:"Chiama"}
 }
@@ -319,7 +323,7 @@ section{position:relative}
 .menu-testa h2{text-transform:uppercase;font-size:clamp(30px,5vw,64px);color:var(--bianco)}
 .menu .btn-pieno{background:var(--giallo);color:#2a1c15}
 .menu .btn-pieno:hover,.menu .btn-pieno:focus-visible{background:var(--bianco);color:var(--blu)}
-.pannelli{display:grid;grid-template-columns:1fr;gap:clamp(14px,2vw,22px)}
+.pannelli{display:grid;grid-template-columns:1fr;gap:clamp(14px,2vw,22px);align-items:start}
 @media (min-width:900px){.pannelli{grid-template-columns:1fr 1fr}.pannello-pizze{grid-column:1/-1}}
 .pannello{background:#e7e0d3;color:#2a1c15;border-radius:6px;padding:clamp(20px,3vw,32px)}
 .pannello h3{font-size:clamp(22px,2.6vw,32px);text-transform:uppercase;color:var(--blu);margin-bottom:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
