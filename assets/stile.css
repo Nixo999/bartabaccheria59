@@ -247,6 +247,22 @@ section{position:relative}
 .aperitivo .lista-piatti small{color:rgba(255,255,255,.65)}
 .aperitivo .lista-piatti em{color:var(--giallo)}
 .aperitivo .nota{color:rgba(255,255,255,.65)}
+/* richiudibile: come le pizze, ma su fondo blu — l'elenco dell'aperitivo
+   e` un menù dentro un racconto, e chi scorre la giornata non lo sta cercando */
+.a-scomparsa{margin-top:clamp(22px,4vh,38px)}
+.a-scomparsa > summary{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;
+  padding:14px 22px;border-radius:999px;
+  background:var(--bianco);color:var(--blu);
+  font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+  transition:background .2s,color .2s;
+}
+.a-scomparsa > summary::-webkit-details-marker{display:none}
+.a-scomparsa > summary::after{content:"+";font-size:17px;line-height:1}
+.a-scomparsa[open] > summary::after{content:"–"}
+.a-scomparsa > summary:hover,.a-scomparsa > summary:focus-visible{background:var(--giallo);color:var(--inchiostro)}
+.a-scomparsa .due-colonne{margin-top:clamp(20px,3vh,32px)}
+
 .formula{
   border:2px solid rgba(255,255,255,.35);border-radius:var(--raggio);
   padding:clamp(22px,3vw,34px);margin-bottom:clamp(26px,4vh,40px);
@@ -303,7 +319,6 @@ section{position:relative}
 /* ============ DOVE ============ */
 .dove{background:var(--blu-tinta)}
 .dove .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px)}
-@media (min-width:900px){.dove .capitolo-inner{grid-template-columns:1fr 1fr}}
 .dove h2{text-transform:uppercase;font-size:clamp(34px,6vw,80px);color:var(--blu);margin-bottom:18px}
 .dove h2 .script{display:block;color:var(--rosso);font-size:.62em;margin-top:6px}
 .dove address{font-style:normal;font-size:clamp(18px,2vw,22px);line-height:1.4}
@@ -312,13 +327,6 @@ section{position:relative}
 .dove .btn-pieno{background:var(--blu);color:var(--bianco)}
 .dove .btn-vuoto{border-color:var(--blu);color:var(--blu)}
 .dove .btn-vuoto:hover,.dove .btn-vuoto:focus-visible{background:var(--blu);color:var(--bianco)}
-.scheda{background:var(--bianco);border-radius:var(--raggio);padding:clamp(22px,3vw,34px)}
-.scheda dl{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:baseline}
-.scheda dt{font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--grigio);font-weight:600;padding-top:4px}
-.scheda dd{font-weight:600}
-.scheda dd small{display:block;color:var(--grigio);font-weight:400;font-size:14px}
-.scheda .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-.scheda .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--blu-tinta);color:var(--blu)}
 
 /* ============ MENÙ — nei colori del sito: bianco, blu, il rosso dell'insegna.
    Il legno scuro del menù stampato e` stato tolto il 2 settembre 2026: in mezzo
