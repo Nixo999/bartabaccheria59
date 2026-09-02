@@ -1,0 +1,384 @@
+/* ============ TOKENS — dall'insegna: blu, il 59 rosso, bianco ============ */
+:root{
+  --blu:#1b4aa4;
+  --blu-scuro:#123478;
+  --blu-tinta:#e9eef9;
+  --rosso:#d9262d;
+  --bianco:#ffffff;
+  --inchiostro:#17203a;
+  --grigio:#5d667f;
+  --linea:rgba(23,32,58,.14);
+  --giallo:#f2b429;   /* il piattino della loro tazza: solo per l'indicatore "adesso" */
+  --pad:clamp(20px,5vw,72px);
+  --raggio:14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:var(--bianco);
+  color:var(--inchiostro);
+  font-family:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  font-size:17px;line-height:1.55;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--rosso);color:var(--bianco)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--rosso);outline-offset:3px;border-radius:4px}
+
+h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height:1;letter-spacing:-.01em}
+.script{font-family:"Yellowtail",cursive;font-weight:400;letter-spacing:0;text-transform:none}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px var(--pad);
+  color:var(--bianco);
+  transition:background .35s,color .35s,box-shadow .35s;
+}
+.nav.solida{background:var(--bianco);color:var(--inchiostro);box-shadow:0 1px 0 var(--linea)}
+.nav-giorno{position:absolute;left:0;right:0;bottom:-2px;height:3px;background:var(--linea);opacity:0;transition:opacity .3s}
+.nav.solida .nav-giorno{opacity:1}
+.nav-giorno .pieno{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--blu)}
+.nav-giorno .tacca{position:absolute;top:-4px;width:2px;height:11px;background:var(--blu);opacity:.35;transform:translateX(-50%)}
+.nav-giorno .punto{position:absolute;top:50%;left:0;width:11px;height:11px;border-radius:50%;background:var(--giallo);border:2px solid var(--blu);transform:translate(-50%,-50%)}
+.marchio{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.marchio svg{width:26px;height:26px}
+.marchio b{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.marchio b i{font-style:normal;color:var(--rosso)}
+.nav.solida .marchio svg .vetro{stroke:var(--blu)}
+.nav-voci{display:flex;align-items:center;gap:clamp(14px,2.6vw,30px);list-style:none}
+.nav-voci a.voce{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;opacity:.85;white-space:nowrap;transition:opacity .2s}
+.nav-voci a.voce:hover,.nav-voci a.voce:focus-visible{opacity:1}
+.nav-tel{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;letter-spacing:.06em;
+  padding:10px 18px;border-radius:999px;white-space:nowrap;
+  background:var(--bianco);color:var(--blu);
+  transition:background .2s,color .2s,transform .2s;
+}
+.nav.solida .nav-tel{background:var(--blu);color:var(--bianco)}
+.nav-tel:hover,.nav-tel:focus-visible{transform:translateY(-1px)}
+@media (max-width:720px){
+  .nav-voci .nascondi-m{display:none}
+}
+@media (max-width:560px){
+  /* marchio e pillola non ci stanno affiancati: si stringono entrambi.
+     Misurato sul Mac: a 390px ne servivano 399 su 350 disponibili. */
+  .marchio b{font-size:12px}
+  .marchio svg{width:22px;height:22px}
+  .nav-tel{padding:10px 16px;font-size:12px}
+}
+@media (max-width:480px){
+  .nav-tel .num{display:none}
+  .nav-tel::after{content:"Chiama"}
+}
+
+/* ============ HERO — l'insegna ============ */
+.hero{
+  position:relative;min-height:100svh;
+  background:var(--blu);color:var(--bianco);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:100px var(--pad) 50px;
+  overflow:hidden;
+}
+/* la trama dell'insegna: righe sottili come una tenda da sole */
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,var(--bianco) 22px 23px);
+  animation:tenda 30s linear infinite;
+}
+@keyframes tenda{to{background-position:23px 0}}
+@media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
+.hero-inner{position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto;container-type:inline-size}
+.sopratitolo{
+  font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;
+  opacity:.8;margin-bottom:22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.sopratitolo i{width:6px;height:6px;border-radius:50%;background:var(--rosso);display:inline-block}
+.hero h1{
+  text-transform:uppercase;
+  font-size:clamp(44px,8.3vw,128px);
+  line-height:.9;
+}
+.hero h1 .parola{display:inline-block}
+@media (max-width:640px){
+  .hero h1{font-size:12vw;font-size:13.4cqw}
+  .hero h1 .parola{display:block}
+}
+.hero h1 .riga{display:block;overflow:hidden}
+.hero h1 .riga span{display:inline-block}
+.hero h1 .cinquantanove{color:var(--rosso);-webkit-text-stroke:1px rgba(255,255,255,.35)}
+.hero .firma{
+  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-top:8px;
+}
+.hero .firma .script{font-size:clamp(34px,6vw,84px);line-height:1;color:var(--bianco)}
+.hero .firma small{
+  font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;
+  font-size:clamp(13px,1.6vw,20px);letter-spacing:.26em;
+  border:2px solid rgba(255,255,255,.7);padding:8px 14px;border-radius:6px;
+}
+.hero-basso{
+  display:grid;grid-template-columns:1fr;gap:34px;margin-top:clamp(36px,7vh,70px);align-items:end;
+}
+@media (min-width:900px){.hero-basso{grid-template-columns:1.2fr .8fr}}
+.hero p.lead{font-size:clamp(18px,2.2vw,24px);max-width:34ch;line-height:1.4;font-weight:400}
+.hero p.lead strong{font-weight:700}
+.hero-azioni{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start}
+@media (min-width:900px){.hero-azioni{justify-content:flex-end}}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  padding:16px 26px;border-radius:999px;
+  transition:transform .2s,background .2s,color .2s,border-color .2s;
+}
+.btn-pieno{background:var(--bianco);color:var(--blu)}
+.btn-pieno:hover,.btn-pieno:focus-visible{background:var(--rosso);color:var(--bianco);transform:translateY(-2px)}
+.btn-vuoto{border:2px solid rgba(255,255,255,.6);color:var(--bianco)}
+.btn-vuoto:hover,.btn-vuoto:focus-visible{border-color:var(--bianco);transform:translateY(-2px)}
+
+/* ============ LA LINEA DEL GIORNO — la firma del sito ============ */
+.giorno{
+  position:relative;z-index:1;
+  max-width:1240px;margin:clamp(40px,8vh,80px) auto 0;
+  color:var(--bianco);
+}
+.giorno-testa{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.giorno-testa b{font-size:13px;text-transform:uppercase;letter-spacing:.24em;font-weight:600;opacity:.8}
+#adesso{
+  font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.12);padding:8px 14px;border-radius:999px;
+}
+#adesso i{width:9px;height:9px;border-radius:50%;background:var(--giallo);box-shadow:0 0 0 0 rgba(242,180,41,.6);animation:batti 2s ease-out infinite}
+#adesso.chiuso i{background:rgba(255,255,255,.45);animation:none}
+@keyframes batti{0%{box-shadow:0 0 0 0 rgba(242,180,41,.6)}100%{box-shadow:0 0 0 12px rgba(242,180,41,0)}}
+@media (prefers-reduced-motion:reduce){#adesso i{animation:none}}
+.binario{position:relative;height:4px;background:rgba(255,255,255,.22);border-radius:4px}
+.binario .pieno{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--bianco);border-radius:4px;transition:width 1.6s cubic-bezier(.22,.8,.24,1)}
+.binario .cursore{
+  position:absolute;top:50%;width:18px;height:18px;border-radius:50%;
+  background:var(--giallo);border:3px solid var(--blu);
+  transform:translate(-50%,-50%);display:none;
+}
+.binario .cursore.visibile{display:block}
+.tappe{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;gap:8px}
+.tappe li{position:relative;padding-top:14px}
+.tappe li::before{content:"";position:absolute;top:-19px;left:0;width:2px;height:10px;background:var(--bianco);opacity:.7}
+.tappe a{display:block}
+.tappe time{display:block;font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(16px,2.4vw,26px);letter-spacing:-.01em}
+.tappe span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.18em;opacity:.8;margin-top:2px}
+.tappe li:last-child{text-align:right}
+.tappe li:last-child::before{left:auto;right:0}
+
+/* ============ CAPITOLI ============ */
+section{position:relative}
+.capitolo{padding:clamp(80px,12vh,140px) var(--pad)}
+.capitolo-inner{max-width:1240px;margin:0 auto}
+.capitolo-testa{
+  display:grid;grid-template-columns:auto 1fr;gap:18px clamp(18px,3vw,40px);align-items:end;
+  margin-bottom:clamp(30px,5vh,56px);
+}
+.ora{
+  font-family:"Syne",sans-serif;font-weight:800;
+  font-size:clamp(40px,7vw,96px);line-height:.9;letter-spacing:-.03em;
+  color:var(--blu);
+}
+.ora sup{font-size:.42em;vertical-align:top;margin-left:2px;color:var(--rosso);letter-spacing:0}
+.capitolo-testa h2{
+  text-transform:uppercase;font-size:clamp(28px,4.6vw,60px);color:var(--inchiostro);
+}
+.capitolo-testa p{grid-column:1/-1;color:var(--grigio);max-width:60ch;font-size:clamp(17px,1.6vw,20px)}
+@media (max-width:480px){.capitolo-testa{grid-template-columns:1fr;gap:6px}}
+.capitolo-testa p strong{color:var(--inchiostro);font-weight:600}
+
+/* griglia foto + testo */
+.doppia{display:grid;grid-template-columns:1fr;gap:clamp(18px,3vw,40px);align-items:center}
+@media (min-width:860px){.doppia{grid-template-columns:1fr 1fr}}
+.foto{overflow:hidden;border-radius:var(--raggio);background:var(--blu-tinta)}
+.foto img{width:100%;height:114%;object-fit:cover;will-change:transform}
+.foto.alta{aspect-ratio:3/4}
+.foto.larga{aspect-ratio:4/3}
+.mosaico{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,20px)}
+.mosaico .foto:first-child{grid-column:1/-1}
+.mosaico .foto:first-child{aspect-ratio:16/10}
+
+.lista-piatti{list-style:none;display:flex;flex-direction:column}
+.lista-piatti li{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:14px 0;border-top:1px solid var(--linea);
+}
+.lista-piatti li:last-child{border-bottom:1px solid var(--linea)}
+.lista-piatti b{font-weight:600}
+.lista-piatti small{display:block;color:var(--grigio);font-size:14px;margin-top:2px}
+.lista-piatti em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap}
+.nota{color:var(--grigio);font-size:14px;margin-top:16px}
+
+/* colazione: fondo bianco. pizzeria: tinta. menù: legno. aperitivo: blu pieno. */
+.pizzeria{background:var(--blu-tinta)}
+
+.aperitivo{background:var(--blu);color:var(--bianco)}
+.aperitivo .ora,.aperitivo .capitolo-testa h2{color:var(--bianco)}
+.aperitivo .ora sup{color:var(--giallo)}
+.aperitivo .capitolo-testa p{color:rgba(255,255,255,.78)}
+.aperitivo .capitolo-testa p strong{color:var(--bianco)}
+.aperitivo .lista-piatti li{border-color:rgba(255,255,255,.18)}
+.aperitivo .lista-piatti small{color:rgba(255,255,255,.65)}
+.aperitivo .lista-piatti em{color:var(--giallo)}
+.aperitivo .nota{color:rgba(255,255,255,.65)}
+.formula{
+  border:2px solid rgba(255,255,255,.35);border-radius:var(--raggio);
+  padding:clamp(22px,3vw,34px);margin-bottom:clamp(26px,4vh,40px);
+  display:grid;grid-template-columns:1fr;gap:16px;align-items:center;
+}
+@media (min-width:640px){.formula{grid-template-columns:auto 1fr}}
+.formula .prezzo{
+  font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(56px,9vw,110px);
+  line-height:.85;letter-spacing:-.04em;color:var(--giallo);
+}
+.formula .prezzo sup{font-size:.4em;vertical-align:top;letter-spacing:0}
+.formula h3{font-size:clamp(20px,2.4vw,30px);text-transform:uppercase;margin-bottom:8px}
+.formula p{color:rgba(255,255,255,.8);max-width:46ch}
+.due-colonne{display:grid;grid-template-columns:1fr;gap:clamp(24px,4vw,56px)}
+@media (min-width:860px){.due-colonne{grid-template-columns:1fr 1fr}}
+.due-colonne h3{font-size:13px;text-transform:uppercase;letter-spacing:.24em;font-weight:700;margin-bottom:10px;opacity:.85}
+.aperitivo .mosaico{margin-top:clamp(30px,5vh,56px)}
+
+/* ============ TABACCHI — fascia ============ */
+.tabacchi{
+  background:var(--inchiostro);color:var(--bianco);
+  padding:clamp(50px,8vh,80px) var(--pad);
+}
+.tabacchi .capitolo-inner{display:flex;align-items:center;gap:clamp(18px,4vw,50px);flex-wrap:wrap}
+.tabacchi .capitolo-inner > div:last-child{flex:1 1 260px;min-width:0}
+.tabacchi .tiglio{
+  flex:none;width:clamp(72px,10vw,120px);aspect-ratio:1;
+  background:var(--bianco);color:var(--inchiostro);
+  display:grid;place-items:center;border-radius:8px;
+  font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(46px,7vw,84px);line-height:1;
+}
+.tabacchi h2{text-transform:uppercase;font-size:clamp(26px,4vw,48px);margin-bottom:8px}
+.tabacchi p{color:rgba(255,255,255,.75);max-width:52ch}
+.tabacchi p strong{color:var(--bianco);font-weight:600}
+
+/* ============ RECENSIONI ============ */
+.recensioni .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px);align-items:start}
+@media (min-width:900px){.recensioni .capitolo-inner{grid-template-columns:.8fr 1.2fr}}
+.voto{display:flex;flex-direction:column;gap:8px}
+.voto .numero{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(80px,14vw,170px);line-height:.85;letter-spacing:-.05em;color:var(--blu)}
+.voto .stelle{display:flex;gap:4px;color:var(--giallo)}
+.voto .stelle svg{width:22px;height:22px;fill:currentColor}
+.voto .stelle svg.mezza{fill:url(#mezza)}
+.voto p{color:var(--grigio);font-size:15px}
+.voto p a{color:var(--blu);font-weight:600;border-bottom:1px solid currentColor}
+.citazioni{list-style:none;display:flex;flex-direction:column;gap:6px}
+.citazioni li{padding:22px 0;border-top:1px solid var(--linea)}
+.citazioni li:last-child{border-bottom:1px solid var(--linea)}
+.citazioni q{font-family:"Syne",sans-serif;font-weight:700;font-size:clamp(20px,2.4vw,30px);line-height:1.2;quotes:"«" "»";display:block}
+.citazioni q::before{color:var(--rosso)}
+.citazioni q::after{color:var(--rosso)}
+.citazioni span{display:block;margin-top:10px;font-size:13px;text-transform:uppercase;letter-spacing:.18em;color:var(--grigio)}
+
+/* ============ DOVE ============ */
+.dove{background:var(--blu-tinta)}
+.dove .capitolo-inner{display:grid;grid-template-columns:1fr;gap:clamp(26px,4vw,56px)}
+@media (min-width:900px){.dove .capitolo-inner{grid-template-columns:1fr 1fr}}
+.dove h2{text-transform:uppercase;font-size:clamp(34px,6vw,80px);color:var(--blu);margin-bottom:18px}
+.dove h2 .script{display:block;color:var(--rosso);font-size:.62em;margin-top:6px}
+.dove address{font-style:normal;font-size:clamp(18px,2vw,22px);line-height:1.4}
+.dove address a{border-bottom:2px solid var(--blu);font-weight:600}
+.dove .azioni{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.dove .btn-pieno{background:var(--blu);color:var(--bianco)}
+.dove .btn-vuoto{border-color:var(--blu);color:var(--blu)}
+.dove .btn-vuoto:hover,.dove .btn-vuoto:focus-visible{background:var(--blu);color:var(--bianco)}
+.scheda{background:var(--bianco);border-radius:var(--raggio);padding:clamp(22px,3vw,34px)}
+.scheda dl{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:baseline}
+.scheda dt{font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--grigio);font-weight:600;padding-top:4px}
+.scheda dd{font-weight:600}
+.scheda dd small{display:block;color:var(--grigio);font-weight:400;font-size:14px}
+.scheda .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.scheda .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--blu-tinta);color:var(--blu)}
+
+/* ============ MENÙ — nei colori del sito: bianco, blu, il rosso dell'insegna.
+   Il legno scuro del menù stampato e` stato tolto il 2 settembre 2026: in mezzo
+   a un sito bianco e blu era una macchia, e su un listino lungo il fondo scuro
+   stanca anche a leggerlo. ============ */
+.menu{background:var(--bianco);color:var(--inchiostro);padding:clamp(80px,12vh,140px) var(--pad)}
+.menu .capitolo-inner{max-width:1240px;margin:0 auto}
+.menu-testa{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(28px,5vh,50px)}
+.menu-testa .sopratitolo{color:var(--rosso);opacity:1;margin-bottom:10px}
+.menu-testa h1,.menu-testa h2{text-transform:uppercase;font-size:clamp(30px,5vw,64px);color:var(--inchiostro)}
+.menu-sintesi{margin-top:14px;max-width:56ch;color:var(--grigio);font-size:16px}
+.menu-tasti{display:flex;gap:12px;flex-wrap:wrap}
+.menu .btn-pieno{background:var(--blu);color:var(--bianco)}
+.menu .btn-pieno:hover,.menu .btn-pieno:focus-visible{background:var(--rosso);color:var(--bianco)}
+.menu .btn-vuoto{border-color:var(--blu);color:var(--blu)}
+.menu .btn-vuoto:hover,.menu .btn-vuoto:focus-visible{border-color:var(--rosso);color:var(--rosso)}
+.pannelli{display:grid;grid-template-columns:1fr;gap:clamp(14px,2vw,22px);align-items:start}
+@media (min-width:900px){.pannelli{grid-template-columns:1fr 1fr}.pannello-pizze{grid-column:1/-1}}
+.pannello{background:var(--blu-tinta);color:var(--inchiostro);border-radius:var(--raggio);padding:clamp(20px,3vw,32px)}
+.pannello h3{font-size:clamp(22px,2.6vw,32px);text-transform:uppercase;color:var(--blu);margin-bottom:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pannello .menu-lista + h3{margin-top:26px}
+.pannello h3 span{font-family:"Public Sans",sans-serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--grigio)}
+.menu-lista{list-style:none;display:flex;flex-direction:column}
+.menu-lista.due{display:grid;grid-template-columns:1fr;column-gap:clamp(20px,4vw,56px)}
+@media (min-width:760px){.menu-lista.due{grid-template-columns:1fr 1fr}}
+.menu-lista li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:9px 0;border-top:1px solid var(--linea)}
+.menu-lista b{font-weight:700;font-size:15px}
+.menu-lista small{display:block;color:var(--grigio);font-size:13px;line-height:1.35;margin-top:1px}
+.menu-lista em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap;font-size:15px}
+.menu-lista li.casa b{color:var(--rosso)}
+.menu-lista li.casa b::after{content:"la pizza della casa";font-family:"Public Sans",sans-serif;font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--rosso);margin-left:8px}
+.menu-nota{margin-top:14px;font-size:13px;color:var(--grigio)}
+.altre > summary{list-style:none;cursor:pointer;margin-top:10px;padding:14px 18px;border-radius:999px;background:var(--blu);color:var(--bianco);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.altre > summary::-webkit-details-marker{display:none}
+.altre[open] > summary{display:none}
+.menu-piede{margin-top:clamp(22px,4vh,36px);font-size:14px;color:var(--grigio);max-width:70ch}
+
+/* la pagina del menù: la nav e` fissa e opaca, quindi il titolo parte piu` in basso */
+.menu-pagina{display:block;padding-top:clamp(110px,14vh,160px)}
+.voce-attiva{opacity:1;text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:2px}
+.menu-torna{margin-top:clamp(26px,4vh,40px);font-size:14px;font-weight:600}
+.menu-torna a{color:var(--blu)}
+.menu-torna a:hover{color:var(--rosso)}
+
+/* servizi della pizzeria */
+.servizi-lista{list-style:none;display:flex;flex-direction:column}
+.servizi-lista li{padding:16px 0;border-top:1px solid var(--linea)}
+.servizi-lista li:last-child{border-bottom:1px solid var(--linea)}
+.servizi-lista b{display:block;font-weight:700}
+.servizi-lista small{display:block;color:var(--grigio);font-size:14px;margin-top:3px}
+.servizi-lista a{color:var(--blu);font-weight:600}
+
+/* card di testo nel mosaico della colazione */
+.scheda-testo{display:grid;place-items:center;padding:24px;text-align:center}
+@media (max-width:640px){.mosaico .scheda-testo{grid-column:1/-1;aspect-ratio:auto;min-height:0}}
+.scheda-testo p{font-size:15px;line-height:1.5;color:var(--inchiostro)}
+.scheda-testo b{display:block;font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:13px;letter-spacing:.14em;color:var(--blu);margin-bottom:8px}
+.scheda-testo .script{display:block;color:var(--rosso);font-size:30px;margin-top:8px}
+
+/* chip dei servizi nella fascia tabacchi */
+.tabacchi .servizi{list-style:none;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.tabacchi .servizi li{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.1);color:var(--bianco)}
+
+/* ============ FOOTER ============ */
+footer{
+  background:var(--blu-scuro);color:rgba(255,255,255,.75);
+  padding:40px var(--pad) 56px;font-size:14px;
+  display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start;
+}
+footer .marchio{color:var(--bianco)}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+footer .marchio,footer .marchio b{white-space:normal} /* nel footer il marchio va a capo, non sfora */
+footer a{display:inline-block;padding:6px 0}
+footer a:hover{color:var(--bianco)}
+.voto p a,.nota a,.dove address a{display:inline-block;padding:8px 0}
+
+/* ============ MOTION — la fa GSAP, in modo additivo: senza GSAP o con
+   reduced-motion la pagina e' gia' completa ============ */
+.svela{will-change:transform}
+.tiglio{transform-style:preserve-3d;backface-visibility:hidden}
