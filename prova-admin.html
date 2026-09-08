@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Prova — lettura e riscrittura delle regioni</title>
+<style>
+  body{font:15px/1.5 system-ui,sans-serif;max-width:900px;margin:40px auto;padding:0 20px}
+  h1{font-size:20px}
+  li{padding:3px 0;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .ok{color:#12703a} .ko{color:#b3121b;font-weight:700}
+  #totale{font-size:17px;font-weight:700;padding:14px 18px;border-radius:10px;margin-top:16px}
+</style>
+</head>
+<body>
+
+<h1>Regioni marcate: lettura e riscrittura</h1>
+<p>La cosa che, sbagliata, rovina il sito: <code>admin.js</code> legge i pezzi
+marcati di <code>index.html</code> e <code>menu.html</code> e li riscrive. Qui
+si controlla che riscriverli senza cambiare niente lasci i file <b>identici</b>
+al byte, e che cambiare una voce cambi solo quella.</p>
+<p>Si apre da un indirizzo <code>http://</code>, non con un doppio clic.</p>
+
+<ul id="esiti"></ul>
+<p id="totale"></p>
+
+<script src="admin.js" defer></script>
+<script defer>
+addEventListener('load', async () => {
+  const esiti = document.getElementById('esiti');
+  let rotti = 0;
+  const prova = (nome, condizione, dettaglio) => {
+    const li = document.createElement('li');
+    const buono = Boolean(condizione);
+    if (!buono) rotti++;
+    li.className = buono ? 'ok' : 'ko';
+    li.textContent = (buono ? '✓ ' : '✗ ') + nome + (buono || !dettaglio ? '' : ' — ' + dettaglio);
+    esiti.append(li);
+  };
+
+  const leggi = (f) => fetch(f, { cache: 'no-cache' }).then((r) => r.text());
+  const index = await leggi('index.html');
+  const menu = await leggi('menu.html');
+
+  // 1. le regioni ci sono tutte
+  prova('index.html ha le regioni @scatto', nomiRegioni(index, 'scatto').length === 4, nomiRegioni(index, 'scatto').join(','));
+  prova('index.html ha la galleria offerte', regione(index, 'galleria', 'offerte') !== null);
+  prova('menu.html ha 7 listini', nomiRegioni(menu, 'menu').length === 7, String(nomiRegioni(menu, 'menu').length));
+
+  // 2. il giro completo non cambia un byte: leggo il listino, lo riscrivo
+  //    come sta, e il file deve tornare identico
+  for (const [file, testo] of [['menu.html', menu], ['index.html', index]]) {
+    let rifatto = testo;
+    for (const lista of leggiListe(testo, file)) {
+      rifatto = riscrivi(rifatto, 'menu', lista.regione, scriviVoci(lista));
+    }
+    prova(file + ': riscrivere i listini senza cambiarli lo lascia identico',
+      rifatto === testo, primaDifferenza(testo, rifatto));
+  }
+  let rifattaGalleria = riscrivi(index, 'galleria', 'offerte', scriviLocandine(leggiLocandine(index)));
+  prova('index.html: riscrivere le locandine senza cambiarle lo lascia identico',
+    rifattaGalleria === index, primaDifferenza(index, rifattaGalleria));
+
+  // 3. cambiare un prezzo cambia quel prezzo e nient'altro
+  const liste = leggiListe(menu, 'menu.html');
+  const pizze = liste.find((l) => l.regione === 'pizze');
+  const primaVoce = pizze.voci[0];
+  prova('la prima pizza e’ la Fiftynine a 12,00', primaVoce.nome === 'Fiftynine' && primaVoce.prezzo === '12,00',
+    primaVoce.nome + ' ' + primaVoce.prezzo);
+  prova('la Fiftynine resta marcata come pizza della casa', primaVoce.casa === true);
+  primaVoce.prezzo = '12,50';
+  const conPrezzoNuovo = riscrivi(menu, 'menu', 'pizze', scriviVoci(pizze));
+  prova('il prezzo nuovo c’e’', conPrezzoNuovo.includes('<b>Fiftynine</b><small>pomodoro, mozzarella, salame piccante, prosciutto cotto, wurstel e salsiccia</small></div><em>12,50</em>'));
+  prova('e’ cambiato quel prezzo e basta', diversi(menu, conPrezzoNuovo) === 1,
+    diversi(menu, conPrezzoNuovo) + ' caratteri diversi');
+
+  // 4. una voce aggiunta e poi tolta riporta il file com'era
+  pizze.voci[0].prezzo = '12,00';
+  pizze.voci.push({ nome: 'Prova', desc: 'una voce inventata', prezzo: '1,00', casa: false });
+  const conVoce = riscrivi(menu, 'menu', 'pizze', scriviVoci(pizze));
+  prova('la voce aggiunta compare', conVoce.includes('<b>Prova</b><small>una voce inventata</small></div><em>1,00</em>'));
+  pizze.voci.pop();
+  prova('tolta la voce, il file torna com’era', riscrivi(menu, 'menu', 'pizze', scriviVoci(pizze)) === menu);
+
+  // 5. gli scatti: si cambia solo l'i-esima foto della regione
+  const scatti = leggiScatti(index, 'index.html');
+  // 3 in colazione, 1 in pizzeria, 2 nel mosaico dell'aperitivo, 2 di lista cocktail
+  prova('index.html ha 8 foto modificabili', scatti.length === 8, String(scatti.length));
+  const colazione = regione(index, 'scatto', 'colazione').dentro;
+  const cambiata = scriviScatto(colazione, 1, { src: 'assets/img/x.jpg', alt: 'prova', w: 10, h: 20 });
+  prova('cambia la seconda foto', cambiata.includes('src="assets/img/x.jpg" alt="prova" width="10" height="20"'));
+  prova('la prima foto non e’ stata toccata', cambiata.includes('post-06-2025-08-06b.jpg'));
+  prova('la terza foto non e’ stata toccata', cambiata.includes('post-04-2025-08-09.jpg'));
+  prova('la seconda foto e’ sparita', !cambiata.includes('post-02-2025-08-31.jpg'));
+  prova('la scheda di testo del mosaico e’ rimasta', cambiata.includes('scheda-testo'));
+
+  // 6. il testo dell'utente non puo' iniettare markup
+  prova('nel testo il minore viene chiuso', escT('<b>ciao</b>') === '&lt;b&gt;ciao&lt;/b&gt;');
+  prova('nel testo l’apice resta com’e’', escT("'nduja e d'oliva") === "'nduja e d'oliva");
+  prova('nell’attributo le virgolette vengono chiuse', escA('a "b" c') === 'a &quot;b&quot; c');
+  prova('nell’attributo l’apice viene chiuso', escA("l'ora") === 'l&#39;ora');
+
+  // 7. una regione che non c'e' fa rumore, non scrive alla cieca
+  let esploso = false;
+  try { riscrivi(menu, 'menu', 'inventata', 'x'); } catch (e) { esploso = String(e.message).startsWith('regione-sparita'); }
+  prova('una regione sparita ferma il salvataggio', esploso);
+
+  const t = document.getElementById('totale');
+  t.textContent = rotti ? rotti + ' controlli falliti su ' + esiti.children.length : 'Tutti a posto: ' + esiti.children.length + ' controlli';
+  t.style.background = rotti ? '#fdecec' : '#e8f6ed';
+  t.style.color = rotti ? '#b3121b' : '#12703a';
+});
+
+// quanti caratteri cambiano fra due testi della stessa lunghezza
+function diversi(a, b) {
+  if (a.length !== b.length) return -1;
+  let n = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++;
+  return n;
+}
+
+function primaDifferenza(a, b) {
+  if (a === b) return '';
+  let i = 0;
+  while (i < a.length && a[i] === b[i]) i++;
+  return 'diverge al carattere ' + i + ': «' + a.slice(i, i + 60) + '» invece di «' + b.slice(i, i + 60) + '»';
+}
+</script>
+</body>
+</html>

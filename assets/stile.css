@@ -25,7 +25,8 @@ body{
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
 }
-img{max-width:100%;display:block}
+img{max-width:100%;height:auto;display:block}
+[hidden]{display:none!important}  /* una regola d'autore che imposta display batte [hidden] della UA */
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--rosso);color:var(--bianco)}
 a:focus-visible,button:focus-visible{outline:3px solid var(--rosso);outline-offset:3px;border-radius:4px}
@@ -81,6 +82,12 @@ h1,h2,h3{font-family:"Syne","Public Sans",sans-serif;font-weight:800;line-height
 }
 /* Le voci spariscono a 760, non a 720: fra i due valori restavano dentro per
    sei pixel, e sei pixel non sono un margine. */
+/* La quinta voce non ci sta fra 761 e 899: sotto i 900 «Offerte» esce, e la
+   nav torna alle quattro voci che ci stavano gia'. La sezione resta raggiungibile
+   scorrendo, sta subito dopo il menu. */
+@media (max-width:899px){
+  .nav-voci .nascondi-s{display:none}
+}
 @media (max-width:760px){
   .nav-voci .nascondi-m{display:none}
 }
@@ -221,8 +228,9 @@ section{position:relative}
 .foto.alta{aspect-ratio:3/4}
 .foto.larga{aspect-ratio:4/3}
 .mosaico{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,20px)}
-.mosaico .foto:first-child{grid-column:1/-1}
-.mosaico .foto:first-child{aspect-ratio:16/10}
+/* la prima a tutta larghezza solo se dietro ce n'e' abbastanza da riempire la
+   riga: nell'aperitivo, rimaste in due, lasciava mezza riga vuota */
+.mosaico:has(> :nth-child(3)) .foto:first-child{grid-column:1/-1;aspect-ratio:16/10}
 
 .lista-piatti{list-style:none;display:flex;flex-direction:column}
 .lista-piatti li{
@@ -411,3 +419,92 @@ footer a:hover{color:var(--bianco)}
    reduced-motion la pagina e' gia' completa ============ */
 .svela{will-change:transform}
 .tiglio{transform-style:preserve-3d;backface-visibility:hidden}
+
+/* ============ LOCANDINE — le stampe esposte nel locale.
+   Non sono foto da ritagliare: si leggono, quindi stanno intere e senza
+   parallasse. Il prezzo e' scritto anche in testo sotto: una locandina
+   fotografata non la legge uno screen reader. ============ */
+.offerte{background:var(--blu-tinta);color:var(--inchiostro);padding:clamp(80px,12vh,140px) var(--pad)}
+.offerte .capitolo-inner{max-width:1240px;margin:0 auto}
+.offerte .menu-testa h2{color:var(--inchiostro)}
+.offerte .btn-pieno{background:var(--blu);color:var(--bianco)}
+.offerte .btn-pieno:hover,.offerte .btn-pieno:focus-visible{background:var(--rosso)}
+.locandine{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:clamp(14px,2vw,24px);align-items:stretch}
+.locandina{margin:0;background:var(--bianco);border-radius:var(--raggio);overflow:hidden;display:flex;flex-direction:column}
+.locandina img{width:100%;height:auto}
+.locandina figcaption{padding:16px 18px 20px;display:flex;flex-direction:column;gap:7px;flex:1}
+.locandina figcaption b{font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:15px;color:var(--blu)}
+.locandina figcaption small{color:var(--grigio);font-size:13.5px;line-height:1.45;flex:1}
+.locandina figcaption em{font-style:normal;font-family:"Syne",sans-serif;font-weight:800;font-size:26px;line-height:1;color:var(--rosso);letter-spacing:-.02em}
+
+/* i due pannelli della lista cocktail, sul fondo blu dell'aperitivo */
+.aperitivo .locandine{margin-top:clamp(26px,4vh,44px)}
+.aperitivo .locandina{background:rgba(255,255,255,.07)}
+.locandine-due{grid-template-columns:1fr}
+@media (min-width:700px){.locandine-due{grid-template-columns:1fr 1fr}}
+
+/* ============ ORARI — nella sezione "dove", accanto all'indirizzo ============ */
+@media (min-width:900px){.dove .capitolo-inner{grid-template-columns:1.05fr .95fr}}
+.orari h3{font-size:13px;text-transform:uppercase;letter-spacing:.24em;font-weight:700;color:var(--grigio);font-family:"Public Sans",sans-serif;margin-bottom:12px}
+.orari-lista{list-style:none;display:flex;flex-direction:column;max-width:420px}
+.orari-lista li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:12px 0;border-top:1px solid var(--linea)}
+.orari-lista li:last-child{border-bottom:1px solid var(--linea)}
+.orari-lista b{font-weight:600}
+.orari-lista em{font-style:normal;font-family:"Syne",sans-serif;font-weight:700;color:var(--blu);white-space:nowrap}
+.orari .nota{max-width:44ch}
+.orari .locandina{max-width:340px;margin-top:clamp(20px,3vh,30px);box-shadow:0 10px 30px rgba(23,32,58,.12)}
+
+/* ============ PAGINA DI MODIFICA (admin.html) — noindex, fuori dal sito.
+   Sta nello stesso foglio perche' riusa tutto: token, bottoni, .field. ============ */
+.admin{max-width:1000px;margin:0 auto;padding:calc(clamp(110px,14vh,160px)) var(--pad) 90px}
+.admin-testa{position:sticky;top:56px;z-index:6;background:var(--bianco);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  padding:14px 0;margin-bottom:26px;box-shadow:0 10px 14px -12px rgba(23,32,58,.35)}
+.admin h1{font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:clamp(30px,5vw,54px);color:var(--inchiostro)}
+.admin h2{font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.6vw,28px);color:var(--blu);margin-bottom:6px}
+.admin .btn-pieno{background:var(--blu);color:var(--bianco)}
+.admin .btn-pieno:hover:not(:disabled),.admin .btn-pieno:focus-visible{background:var(--rosso)}
+.admin .btn-vuoto{border-color:var(--blu);color:var(--blu)}
+.admin .btn:disabled{opacity:.45;pointer-events:none}
+.admin-sub{color:var(--grigio);font-size:15px;max-width:64ch;line-height:1.5}
+.admin-avviso{background:var(--blu-tinta);border-left:4px solid var(--blu);border-radius:0 var(--raggio) var(--raggio) 0;padding:16px 20px;margin:14px 0;font-size:14.5px;line-height:1.55;max-width:70ch}
+.admin-avviso code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--bianco);padding:1px 6px;border-radius:4px}
+.admin-esito{position:sticky;top:76px;z-index:5;background:var(--blu);color:var(--bianco);border-radius:var(--raggio);padding:14px 20px;margin:16px 0;font-size:15px;line-height:1.5}
+.admin-esito.ko{background:var(--rosso)}
+.admin-blocco{margin-top:clamp(36px,6vh,60px);padding-top:clamp(24px,4vh,36px);border-top:2px solid var(--linea)}
+.admin-elenco{display:flex;flex-direction:column;gap:14px;margin-top:20px}
+
+.admin-riga{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:start;background:var(--blu-tinta);border-radius:var(--raggio);padding:16px}
+.admin-riga > img{width:110px;height:110px;object-fit:cover;border-radius:8px;background:var(--bianco)}
+.admin-campi{display:flex;flex-direction:column;gap:10px;min-width:0}
+.admin-dove{font-size:12px;text-transform:uppercase;letter-spacing:.16em;font-weight:700;color:var(--grigio)}
+@media (max-width:560px){.admin-riga{grid-template-columns:1fr}.admin-riga > img{width:100%;height:180px}}
+
+.admin-voce{display:grid;grid-template-columns:1fr;gap:10px;align-items:end;background:var(--blu-tinta);border-radius:var(--raggio);padding:14px 16px}
+@media (min-width:760px){.admin-voce{grid-template-columns:1fr 1.6fr .5fr auto}}
+.admin-voce .link-line{align-self:end;padding-bottom:11px}
+
+.admin label{display:flex;flex-direction:column;gap:5px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--grigio);min-width:0}
+.admin input[type=text],.admin textarea,.admin select{
+  font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--inchiostro);
+  background:var(--bianco);border:1px solid var(--linea);border-radius:8px;padding:10px 12px;width:100%;
+}
+.admin textarea{resize:vertical;line-height:1.45}
+.admin input:focus-visible,.admin textarea:focus-visible,.admin select:focus-visible{outline:2px solid var(--blu);outline-offset:1px}
+.admin input[type=file]{font:inherit;font-size:13px;text-transform:none;letter-spacing:0;color:var(--grigio)}
+.admin .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.admin .field > label{margin:0}
+.admin .field-stretto{max-width:340px;margin-top:18px}
+.admin .field label{font-size:12px}
+.admin .field.invalid input,.admin .field.invalid textarea{border-color:var(--rosso)}
+.field-error{color:var(--rosso);font-size:13px}
+.form-hint{color:var(--grigio);font-size:13px;margin-top:10px}
+.admin-preview{max-width:220px;border-radius:8px;margin-top:8px}
+.admin-nuova{margin-top:22px}
+.admin-nuova > summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:999px;background:var(--blu);color:var(--bianco);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.admin-nuova > summary::-webkit-details-marker{display:none}
+.admin-nuova > summary::after{content:"+";font-size:17px;line-height:1}
+.admin-nuova[open] > summary::after{content:"–"}
+.admin-nuova form{margin-top:20px;max-width:520px}
+.link-line{background:none;border:0;font:inherit;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--rosso);cursor:pointer;padding:6px 0;border-bottom:1px solid currentColor;align-self:flex-start}
+.admin-piede{margin-top:40px;padding-top:20px;border-top:1px solid var(--linea)}

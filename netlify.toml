@@ -17,3 +17,12 @@
   for = "/assets/img/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# La pagina di modifica resta fuori dagli indici anche quando il sito diventa
+# loro e la regola qui sopra si toglie: non e' una pagina del sito, e non e'
+# protetta da niente — non serve, perche' da li' non si scrive sul server,
+# si scrive solo sul disco di chi la apre.
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

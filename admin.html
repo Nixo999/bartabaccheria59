@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bar Tabacchi 59 — modifica il sito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/stile.css">
+</head>
+<body>
+
+<header class="nav solida">
+  <a class="marchio" href="index.html" aria-label="Bar Tabacchi Fiftynine — torna al sito">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="vetro" d="M3 3h18l-8 9v6h4v2H7v-2h4v-6L3 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <b>Bar Tabacchi <i>59</i></b>
+  </a>
+  <nav aria-label="principale">
+    <ul class="nav-voci">
+      <li><a class="voce" href="index.html">Vedi il sito</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main class="admin">
+
+  <div class="admin-testa">
+    <div>
+      <h1>Modifica il sito</h1>
+      <p class="admin-sub">Le foto, le locandine delle offerte e tutti i prezzi del menù. Si cambia qui, si salva una volta sola.</p>
+    </div>
+    <button class="btn btn-pieno" id="salva" type="button" disabled>Salva tutto</button>
+  </div>
+
+  <!-- Su Chrome ed Edge da computer la pagina scrive da sola nella cartella del
+       sito. Su Safari e sul telefono no: la File System Access API non esiste,
+       e allora consegna i file da scaricare. -->
+  <p class="admin-avviso" id="avviso-download" hidden>
+    Da questo browser la pagina non può scrivere dentro il sito: quando salvi ti
+    dà i file da scaricare — le foto nuove e le pagine modificate. Mandali a
+    Nicola: le modifiche si vedono online quando le pubblica lui. Dal computer,
+    con Chrome o Edge, invece scrive tutto da sola.
+  </p>
+  <p class="admin-avviso" id="nota-cartella" hidden>
+    La prima volta che salvi ti chiede dove sta il sito: scegli la cartella
+    <code>bartabaccheria59</code>, quella che contiene <code>index.html</code>,
+    e dai il permesso di modificarla.
+  </p>
+
+  <p class="admin-esito" id="esito" hidden></p>
+
+  <!-- ─────────── FOTO ─────────── -->
+  <section class="admin-blocco">
+    <h2>Le foto</h2>
+    <p class="admin-sub">Quelle che stanno nelle sezioni del sito. Si cambia la
+      foto e si cambia la descrizione — quella che leggono i motori di ricerca e
+      chi non vede l'immagine.</p>
+    <div id="scatti" class="admin-elenco"><p class="admin-sub">Sto leggendo il sito…</p></div>
+  </section>
+
+  <!-- ─────────── OFFERTE ─────────── -->
+  <section class="admin-blocco">
+    <h2>Le offerte</h2>
+    <p class="admin-sub">Le locandine dei menù del giorno. Qui se ne aggiungono
+      di nuove, si cambia il prezzo scritto sotto, o si tolgono quando scadono.</p>
+    <div id="locandine" class="admin-elenco"></div>
+
+    <details class="admin-nuova">
+      <summary>Aggiungi una locandina</summary>
+      <form id="form-locandina" novalidate>
+        <div class="field">
+          <label for="n-foto">La foto della locandina</label>
+          <input id="n-foto" type="file" accept="image/*" required>
+          <p class="field-error" hidden>Serve la foto: scegline una dal telefono o dal computer.</p>
+          <img class="admin-preview" id="n-preview" alt="" hidden>
+        </div>
+        <div class="field">
+          <label for="n-titolo">Come si chiama</label>
+          <input id="n-titolo" type="text" placeholder="Menù pranzo, Maxi toast…" required>
+          <p class="field-error" hidden>Dagli un nome: è il titolo che si legge sotto la foto.</p>
+        </div>
+        <div class="field">
+          <label for="n-testo">Cosa comprende</label>
+          <textarea id="n-testo" rows="3" placeholder="Un primo a scelta, il secondo e l'acqua. Con bibita 13 €." required></textarea>
+          <p class="field-error" hidden>Scrivi cosa comprende: il prezzo da solo non basta.</p>
+        </div>
+        <div class="field">
+          <label for="n-prezzo">Prezzo</label>
+          <input id="n-prezzo" type="text" placeholder="12 €" required>
+          <p class="field-error" hidden>Scrivi il prezzo, anche approssimato: «da 8 €» va benissimo.</p>
+        </div>
+        <button class="btn btn-pieno" type="submit">Aggiungi all'elenco</button>
+        <p class="form-hint">Si aggiunge qui nell'elenco. Va nel sito quando premi «Salva tutto».</p>
+      </form>
+    </details>
+  </section>
+
+  <!-- ─────────── MENÙ ─────────── -->
+  <section class="admin-blocco">
+    <h2>Il menù scritto</h2>
+    <p class="admin-sub">Tutti i listini della pagina del menù, più i cocktail e
+      i frittini dell'aperitivo. Si cambia il nome, la descrizione e il prezzo,
+      si aggiunge una voce o si toglie.</p>
+    <div class="field field-stretto">
+      <label for="quale-lista">Quale listino</label>
+      <select id="quale-lista"></select>
+    </div>
+    <div id="voci" class="admin-elenco"></div>
+    <button class="btn btn-vuoto" id="aggiungi-voce" type="button">Aggiungi una voce</button>
+  </section>
+
+  <p class="admin-sub admin-piede">
+    Il menù in PDF e il logo non si cambiano da qui: per quelli serve Nicola.
+  </p>
+
+</main>
+
+<script src="admin.js" defer></script>
+</body>
+</html>
