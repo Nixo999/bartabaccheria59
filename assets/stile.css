@@ -413,6 +413,10 @@ footer ul{list-style:none;display:flex;flex-direction:column;gap:6px}
 footer .marchio,footer .marchio b{white-space:normal} /* nel footer il marchio va a capo, non sfora */
 footer a{display:inline-block;padding:6px 0}
 footer a:hover{color:var(--bianco)}
+/* firma DenkiCode: riga sua in fondo, sotto i recapiti */
+footer .firma{flex-basis:100%;margin:0}
+footer .firma a{display:inline-flex;align-items:center;gap:8px;padding:0;color:inherit}
+footer .firma img{height:18px;width:auto}
 .voto p a,.nota a,.dove address a{display:inline-block;padding:8px 0}
 
 /* ============ MOTION — la fa GSAP, in modo additivo: senza GSAP o con
