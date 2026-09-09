@@ -27,6 +27,7 @@ const stato = {
   testo: {},        // 'index.html' → il testo come e' stato letto
   scatti: [],       // {file, regione, i, src, alt, w, h, nuova:File|null}
   locandine: [],    // {src, alt, w, h, titolo, testo, prezzo, nuova:File|null}
+  rientroLocandine: '      ',
   liste: [],        // {file, regione, etichetta, rientro, voci:[{nome,desc,prezzo,casa}]}
 };
 
@@ -94,6 +95,9 @@ function leggiScatti(testo, file) {
 function leggiLocandine(testo) {
   const r = regione(testo, 'galleria', 'offerte');
   if (!r) return [];
+  // il rientro vero del file: se la galleria cambia posto nel markup, la
+  // riscrittura segue senza che nessuno si ricordi di aggiornare un numero
+  stato.rientroLocandine = (r.dentro.match(/\n( *)<figure/) || [null, '      '])[1];
   return [...dom(r.dentro).querySelectorAll('figure')].map((f) => {
     const img = f.querySelector('img');
     const q = (s) => f.querySelector('figcaption ' + s)?.textContent.trim() || '';
@@ -142,12 +146,13 @@ function scriviVoci(lista) {
 }
 
 function scriviLocandine(voci) {
+  const r = stato.rientroLocandine || '      ';
   const righe = voci.map((v) =>
-    '      <figure class="locandina svela">\n' +
-    '        <img src="' + escA(v.src) + '" alt="' + escA(v.alt) + '" width="' + v.w + '" height="' + v.h + '" loading="lazy">\n' +
-    '        <figcaption><b>' + escT(v.titolo) + '</b><small>' + escT(v.testo) + '</small><em>' + escT(v.prezzo) + '</em></figcaption>\n' +
-    '      </figure>');
-  return '\n' + righe.join('\n') + '\n      ';
+    r + '<figure class="locandina svela">\n' +
+    r + '  <img src="' + escA(v.src) + '" alt="' + escA(v.alt) + '" width="' + v.w + '" height="' + v.h + '" loading="lazy">\n' +
+    r + '  <figcaption><b>' + escT(v.titolo) + '</b><small>' + escT(v.testo) + '</small><em>' + escT(v.prezzo) + '</em></figcaption>\n' +
+    r + '</figure>');
+  return '\n' + righe.join('\n') + '\n' + r;
 }
 
 // Cambia solo l'i-esima <img> della regione: il contenitore, le classi e la

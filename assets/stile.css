@@ -15,7 +15,7 @@
 
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){html,.locandine{scroll-behavior:auto}}
 
 body{
   background:var(--bianco);
@@ -433,7 +433,47 @@ footer .firma img{height:18px;width:auto}
 .offerte .menu-testa h2{color:var(--inchiostro)}
 .offerte .btn-pieno{background:var(--blu);color:var(--bianco)}
 .offerte .btn-pieno:hover,.offerte .btn-pieno:focus-visible{background:var(--rosso)}
-.locandine{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:clamp(14px,2vw,24px);align-items:stretch}
+/* Nastro che scorre di lato, non una griglia: in colonna otto locandine sono
+   un muro, e su un telefono le si scorreva tutte per arrivare in fondo alla
+   pagina. Lo scorrimento e' quello nativo con scroll-snap — le frecce le
+   aggiunge il JS, perche' senza JS il dito e la barra funzionano lo stesso. */
+.locandine{
+  display:flex;gap:clamp(14px,2vw,24px);align-items:stretch;
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;scroll-padding-left:0;scroll-behavior:smooth;
+  padding-bottom:14px;
+  scrollbar-width:thin;scrollbar-color:rgba(23,32,58,.3) transparent;
+}
+.locandine::-webkit-scrollbar{height:7px}
+.locandine::-webkit-scrollbar-track{background:transparent}
+.locandine::-webkit-scrollbar-thumb{background:rgba(23,32,58,.28);border-radius:99px}
+.locandine:focus-visible{outline:2px solid var(--blu);outline-offset:6px;border-radius:4px}
+.locandine > *{flex:0 0 clamp(240px,76vw,300px);scroll-snap-align:start}
+
+/* sul telefono il nastro arriva ai bordi dello schermo: la locandina tagliata
+   a destra e' il modo in cui si capisce che ce n'e' un'altra */
+@media (max-width:760px){
+  .locandine{
+    margin-left:calc(var(--pad) * -1);margin-right:calc(var(--pad) * -1);
+    padding-left:var(--pad);padding-right:var(--pad);scroll-padding-left:var(--pad);
+  }
+}
+
+/* frecce: solo dove c'e' un mouse, e solo se c'e' davvero da scorrere */
+.carosello{position:relative}
+.car-freccia{
+  position:absolute;top:38%;z-index:2;display:none;place-items:center;
+  width:46px;height:46px;border:0;border-radius:50%;cursor:pointer;
+  background:var(--bianco);color:var(--blu);
+  box-shadow:0 6px 20px rgba(23,32,58,.22);
+  transition:transform .2s,background .2s,color .2s,opacity .2s;
+}
+.car-freccia svg{width:22px;height:22px}
+.car-prec{left:-12px;transform:scaleX(-1)}
+.car-succ{right:-12px}
+.car-freccia:hover:not(:disabled){background:var(--rosso);color:var(--bianco)}
+.car-freccia:disabled{opacity:.28;cursor:default}
+@media (min-width:761px){.carosello.scorre .car-freccia{display:grid}}
 .locandina{margin:0;background:var(--bianco);border-radius:var(--raggio);overflow:hidden;display:flex;flex-direction:column}
 .locandina img{width:100%;height:auto}
 .locandina figcaption{padding:16px 18px 20px;display:flex;flex-direction:column;gap:7px;flex:1}
@@ -442,10 +482,13 @@ footer .firma img{height:18px;width:auto}
 .locandina figcaption em{font-style:normal;font-family:"Syne",sans-serif;font-weight:800;font-size:26px;line-height:1;color:var(--rosso);letter-spacing:-.02em}
 
 /* i due pannelli della lista cocktail, sul fondo blu dell'aperitivo */
-.aperitivo .locandine{margin-top:clamp(26px,4vh,44px)}
+.aperitivo .carosello{margin-top:clamp(26px,4vh,44px)}
 .aperitivo .locandina{background:rgba(255,255,255,.07)}
-.locandine-due{grid-template-columns:1fr}
-@media (min-width:700px){.locandine-due{grid-template-columns:1fr 1fr}}
+.aperitivo .locandine{scrollbar-color:rgba(255,255,255,.4) transparent}
+.aperitivo .locandine::-webkit-scrollbar-thumb{background:rgba(255,255,255,.35)}
+.aperitivo .locandine:focus-visible{outline-color:var(--bianco)}
+/* i due pannelli della lista si leggono: piu' larghi delle locandine */
+.locandine-due > *{flex:0 0 clamp(260px,82vw,420px)}
 
 /* ============ ORARI — nella sezione "dove", accanto all'indirizzo ============ */
 @media (min-width:900px){.dove .capitolo-inner{grid-template-columns:1.05fr .95fr}}
