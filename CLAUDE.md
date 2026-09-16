@@ -49,17 +49,27 @@ Dalla locandina del locale (`assets/img/insegna-orari.jpg`):
 
 **Nessun giorno di chiusura.** Prima dell'8 settembre 2026 il sito diceva
 «5:30–21:30» tutti i giorni e il giorno di chiusura era dato per ignoto: la
-locandina ha chiuso il buco. La tabella vive in `ORARI` nello script in fondo a
-`index.html`, indice 0 = domenica come `getDay()`; le due tappe agli estremi
-della linea del giorno le riscrive il JS con le ore di oggi. Se cambiano gli
-orari si toccano **quattro posti**: `ORARI`, la lista `.orari-lista` in `#dove`,
-il footer delle due pagine, la `meta description`.
+locandina ha chiuso il buco.
+
+**Dal 16 settembre 2026 gli orari stanno scritti in un posto solo**: la lista
+`.orari-lista` in `#dove`, dentro `<!-- @orari settimana -->`. Ogni `<li>` porta
+`data-giorni` (0 = domenica come `getDay()`) e due `<time datetime="HH:MM">`;
+un giorno senza `<time>` è chiuso. Lo script in fondo a `index.html` costruisce
+`ORARI` leggendo quella lista — la tabella a mano non c'è più — e riscrive le
+due tappe agli estremi della linea del giorno con le ore di oggi; se oggi è
+chiuso dice «riapre <giorno> alle …». La nota sotto la lista (`@orari nota`) e
+la riga nel footer delle due pagine (`@orari piede`) le rigenera la pagina di
+modifica dallo stesso modello a sette giorni. Restano testo libero, fra le
+scritte: la frase di apertura nell'hero e la `meta description`. La locandina
+è una foto e si cambia dalla sezione «Gli orari» della pagina di modifica.
 
 ## La pagina di modifica (`admin.html`)
 
 Dall'8 settembre 2026. `noindex`, non linkata da nessuna pagina pubblica.
-Da lì il proprietario cambia **le foto**, **le locandine delle offerte** e
-**tutto il menù scritto**, prezzi compresi.
+Da lì il proprietario cambia **le foto**, **le locandine delle offerte**,
+**tutto il menù scritto**, prezzi compresi, e dal 16 settembre 2026 **gli orari**
+giorno per giorno e **le scritte**, cioè i paragrafi marcati e le due
+descrizioni per Google.
 
 **Non c'è un database e non c'è un login.** Lo store sono i file del sito:
 ogni pezzo modificabile sta fra due commenti e si riscrive solo quello.
@@ -69,6 +79,15 @@ ogni pezzo modificabile sta fra due commenti e si riscrive solo quello.
 | `<!-- @scatto <nome> -->` | le foto dentro un mosaico tarato a mano | cambiare la foto e la descrizione, **non** aggiungere o togliere |
 | `<!-- @galleria offerte -->` | le locandine di `#offerte` | tutto: aggiungere, modificare, togliere |
 | `<!-- @menu <nome> -->` | un listino (`<li>` uniformi) | tutto |
+| `<!-- @orari settimana -->`, `nota`, `piede` | la lista dei giorni in `#dove`, la nota sotto, la riga nel footer di tutte e due le pagine | si rigenerano dal modello a sette giorni: ore di apertura e chiusura, o chiuso |
+| `<!-- @scritta <nome> -->` | un paragrafo, `<strong>` e `<br>` compresi | il testo, con `**grassetto**` al posto di `<strong>` e l'a capo al posto di `<br>`; l'etichetta in italiano sta in `ETICHETTE_SCRITTE` |
+| `<!-- @conto pizze -->` | il numero accanto a «Pizze» in `menu.html` | niente: si ricalcola dalle due liste di pizze a ogni salvataggio |
+
+La `meta description` delle due pagine è una scritta anche lei, ma la si trova
+con un'espressione (`DESCRIZIONE`), perché dentro un attributo un commento HTML
+non ci sta. Nelle scritte le entità diverse da `& < >` non si toccano: nei
+paragrafi marcati oggi non ce ne sono, e se qualcuno ne mette una il giro
+completo non torna identico e `prova-admin` lo dice.
 
 La forma di una voce di listino è fissa e il codice ci conta:
 `<li[ class="casa"]><div><b>Nome</b>[<small>descrizione</small>]</div><em>prezzo</em></li>`.
@@ -89,7 +108,7 @@ La forma di una voce di listino è fissa e il codice ci conta:
   affidabile. Nome `<slug>-<timestamp>.jpg`: mai due volte lo stesso, perché
   `assets/img/*` è servito `immutable`.
 
-**`prova-admin.html`** è il controllo: 23 asserzioni sulla lettura e la
+**`prova-admin.html`** è il controllo: 42 asserzioni sulla lettura e la
 riscrittura delle regioni, fra cui il giro completo che deve lasciare i file
 **identici al byte**. Si apre da `http://`, non con un doppio clic. Se si tocca
 `admin.js`, si riapre quella pagina prima di committare.
@@ -101,9 +120,11 @@ riscrittura delle regioni, fra cui il giro completo che deve lasciare i file
    Va provato a mano su Chrome da computer prima di dirlo al proprietario.
 2. **Safari su iPhone mai provato**: orientamento EXIF delle foto e i download
    di fila.
-3. **La locandina degli orari non è modificabile dalla pagina admin**, di
-   proposito: accanto c'è la stessa cosa scritta in testo, e cambiare solo
-   l'immagine produrrebbe una pagina che si contraddice.
+3. **La locandina degli orari si cambia dalla sezione «Gli orari»**, non fra
+   le foto, con l'avviso che se cambiano le ore deve cambiare anche lei. Il
+   rischio resta: chi cambia gli orari e non la foto, o non rilegge la frase di
+   apertura e la descrizione per Google, pubblica una pagina che si contraddice.
+   La pagina di modifica lo scrive, non lo impedisce.
 4. **Le foto della colazione, i frittini e i gyoza restano quelle di Instagram
    a 640px**: sulla chiavetta del proprietario non c'era niente per quelle
    sezioni. Vanno chieste a lui.

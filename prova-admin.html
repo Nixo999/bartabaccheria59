@@ -43,7 +43,7 @@ addEventListener('load', async () => {
   const menu = await leggi('menu.html');
 
   // 1. le regioni ci sono tutte
-  prova('index.html ha le regioni @scatto', nomiRegioni(index, 'scatto').length === 4, nomiRegioni(index, 'scatto').join(','));
+  prova('index.html ha le regioni @scatto', nomiRegioni(index, 'scatto').length === 5, nomiRegioni(index, 'scatto').join(','));
   prova('index.html ha la galleria offerte', regione(index, 'galleria', 'offerte') !== null);
   prova('menu.html ha 7 listini', nomiRegioni(menu, 'menu').length === 7, String(nomiRegioni(menu, 'menu').length));
 
@@ -84,8 +84,8 @@ addEventListener('load', async () => {
 
   // 5. gli scatti: si cambia solo l'i-esima foto della regione
   const scatti = leggiScatti(index, 'index.html');
-  // 3 in colazione, 1 in pizzeria, 2 nel mosaico dell'aperitivo, 2 di lista cocktail
-  prova('index.html ha 8 foto modificabili', scatti.length === 8, String(scatti.length));
+  // 3 in colazione, 1 in pizzeria, 2 nel mosaico dell'aperitivo, 2 di lista cocktail, 1 locandina orari
+  prova('index.html ha 9 foto modificabili', scatti.length === 9, String(scatti.length));
   const colazione = regione(index, 'scatto', 'colazione').dentro;
   const cambiata = scriviScatto(colazione, 1, { src: 'assets/img/x.jpg', alt: 'prova', w: 10, h: 20 });
   prova('cambia la seconda foto', cambiata.includes('src="assets/img/x.jpg" alt="prova" width="10" height="20"'));
@@ -104,6 +104,43 @@ addEventListener('load', async () => {
   let esploso = false;
   try { riscrivi(menu, 'menu', 'inventata', 'x'); } catch (e) { esploso = String(e.message).startsWith('regione-sparita'); }
   prova('una regione sparita ferma il salvataggio', esploso);
+
+  // 8. gli orari: un posto solo, sette giorni, e il giro completo identico
+  const orari = leggiOrari(index);
+  prova('index.html ha la settimana degli orari', orari !== null && orari.length === 7);
+  prova('il lunedi’ apre alle 5:50 e chiude alle 19:30', orari?.[1]?.apre === '05:50' && orari?.[1]?.chiude === '19:30', JSON.stringify(orari?.[1]));
+  prova('la domenica apre alle 7:00', orari?.[0]?.apre === '07:00');
+  prova('sette giorni aperti', orari?.every(Boolean));
+  const testi = { 'index.html': index, 'menu.html': menu };
+  const stessiOrari = riscriviOrari(testi, orari);
+  prova('index.html: riscrivere gli orari senza cambiarli lo lascia identico', stessiOrari['index.html'] === index, primaDifferenza(index, stessiOrari['index.html']));
+  prova('menu.html: riscrivere il piede degli orari lo lascia identico', stessiOrari['menu.html'] === menu, primaDifferenza(menu, stessiOrari['menu.html']));
+  const conChiusura = riscriviOrari(testi, orari.map((f, g) => (g === 1 ? null : f)));
+  prova('lunedi’ chiuso: la lista lo dice', conChiusura['index.html'].includes('<li data-giorni="1"><b>Lunedì</b><em>chiuso</em></li>'));
+  prova('lunedi’ chiuso: il piede lo dice su tutte e due le pagine',
+    conChiusura['index.html'].includes('Lun chiuso · Mar&ndash;Sab 5:30&ndash;21:30 · Dom 7:00&ndash;21:30') &&
+    conChiusura['menu.html'].includes('Lun chiuso · Mar&ndash;Sab 5:30&ndash;21:30 · Dom 7:00&ndash;21:30'));
+  prova('lunedi’ chiuso: la nota lo dice', conChiusura['index.html'].includes('<!-- @orari nota -->Chiuso il lunedì.<!-- /@orari -->'));
+  prova('sette giorni uguali stanno su una riga sola', scriviOrariLista(orari.map(() => ({ apre: '06:00', chiude: '22:00' }))).includes('<li data-giorni="1,2,3,4,5,6,0"><b>Lunedì &ndash; domenica</b>'));
+
+  // 9. le scritte: dal file al testo e ritorno, identico
+  const scritte = [...leggiScritte(index, 'index.html'), ...leggiScritte(menu, 'menu.html')];
+  prova('ci sono 16 scritte, descrizioni per Google comprese', scritte.length === 16, String(scritte.length));
+  const stesseScritte = riscriviScritte(testi, scritte);
+  prova('index.html: riscrivere le scritte senza cambiarle lo lascia identico', stesseScritte['index.html'] === index, primaDifferenza(index, stesseScritte['index.html']));
+  prova('menu.html: riscrivere le scritte senza cambiarle lo lascia identico', stesseScritte['menu.html'] === menu, primaDifferenza(menu, stesseScritte['menu.html']));
+  prova('il grassetto si legge con gli asterischi', scritte.find((s) => s.regione === 'apertura').valore.includes('**tutti i giorni**'));
+  prova('gli asterischi tornano grassetto, l’a capo diventa <br>', aHtml('a **b**\nc') === 'a <strong>b</strong><br>c');
+  prova('nel testo di una scritta il minore viene chiuso', aHtml('<b>') === '&lt;b&gt;');
+  const prezzo = scritte.find((s) => s.regione === 'formula-prezzo');
+  prezzo.valore = '13';
+  prova('cambiare il prezzo della formula cambia quello e basta', diversi(index, riscriviScritte(testi, scritte)['index.html']) === 1);
+  prezzo.valore = '12';
+  scritte.find((s) => s.file === 'menu.html' && s.meta).valore = 'Prova "con virgolette"';
+  prova('la descrizione per Google si chiude nell’attributo', riscriviScritte(testi, scritte)['menu.html'].includes('content="Prova &quot;con virgolette&quot;"'));
+
+  // 10. il conto delle pizze segue le liste
+  prova('le pizze sono 44 e il titolo dice 44', contoPizze(liste) === 44 && regione(menu, 'conto', 'pizze')?.dentro === '44', contoPizze(liste) + ' / ' + regione(menu, 'conto', 'pizze')?.dentro);
 
   const t = document.getElementById('totale');
   t.textContent = rotti ? rotti + ' controlli falliti su ' + esiti.children.length : 'Tutti a posto: ' + esiti.children.length + ' controlli';

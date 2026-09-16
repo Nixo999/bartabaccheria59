@@ -29,7 +29,7 @@
   <div class="admin-testa">
     <div>
       <h1>Modifica il sito</h1>
-      <p class="admin-sub">Le foto, le locandine delle offerte e tutti i prezzi del menù. Si cambia qui, si salva una volta sola.</p>
+      <p class="admin-sub">Le foto, le offerte, il menù con i prezzi, gli orari e le scritte. Si cambia qui, si salva una volta sola.</p>
     </div>
     <button class="btn btn-pieno" id="salva" type="button" disabled>Salva tutto</button>
   </div>
@@ -111,8 +111,31 @@
     <button class="btn btn-vuoto" id="aggiungi-voce" type="button">Aggiungi una voce</button>
   </section>
 
+  <!-- ─────────── ORARI ─────────── -->
+  <section class="admin-blocco">
+    <h2>Gli orari</h2>
+    <p class="admin-sub">Apertura e chiusura, giorno per giorno. Cambiano insieme
+      la lista in «Dove siamo», la riga in fondo alle pagine e la scritta
+      «Aperto adesso» in cima al sito.</p>
+    <div id="orari" class="admin-elenco"></div>
+    <p class="form-hint">Le ore stanno scritte anche nella frase di apertura e
+      nella descrizione per Google, qui sotto fra le scritte: se cambi gli orari,
+      rileggi quelle due. E la locandina è una foto: se cambiano gli orari,
+      cambia anche lei, o il sito si contraddice.</p>
+    <div id="locandina-orari" class="admin-elenco"></div>
+  </section>
+
+  <!-- ─────────── SCRITTE ─────────── -->
+  <section class="admin-blocco">
+    <h2>Le scritte</h2>
+    <p class="admin-sub">I testi del sito, sezione per sezione. Per il grassetto
+      si mettono due asterischi prima e dopo, <b>**così**</b>; per andare a capo
+      si va a capo.</p>
+    <div id="scritte" class="admin-elenco"></div>
+  </section>
+
   <p class="admin-sub admin-piede">
-    Il menù in PDF e il logo non si cambiano da qui: per quelli serve Nicola.
+    Il menù in PDF, il logo e i titoli delle sezioni non si cambiano da qui: per quelli serve Nicola.
   </p>
 
 </main>

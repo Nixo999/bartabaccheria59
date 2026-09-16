@@ -532,7 +532,7 @@ footer .firma img{height:18px;width:auto}
 .admin-voce .link-line{align-self:end;padding-bottom:11px}
 
 .admin label{display:flex;flex-direction:column;gap:5px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--grigio);min-width:0}
-.admin input[type=text],.admin textarea,.admin select{
+.admin input[type=text],.admin input[type=time],.admin textarea,.admin select{
   font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--inchiostro);
   background:var(--bianco);border:1px solid var(--linea);border-radius:8px;padding:10px 12px;width:100%;
 }
@@ -555,3 +555,13 @@ footer .firma img{height:18px;width:auto}
 .admin-nuova form{margin-top:20px;max-width:520px}
 .link-line{background:none;border:0;font:inherit;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--rosso);cursor:pointer;padding:6px 0;border-bottom:1px solid currentColor;align-self:flex-start}
 .admin-piede{margin-top:40px;padding-top:20px;border-top:1px solid var(--linea)}
+/* orari: sotto i 600px il giorno e la spunta prendono una riga, le due ore stanno affiancate */
+.admin-giorno{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-items:end;background:var(--blu-tinta);border-radius:var(--raggio);padding:14px 16px}
+.admin-giorno > b,.admin-chiuso{grid-column:1 / -1}
+.admin-giorno > b{font-family:"Syne",sans-serif;font-weight:800;text-transform:uppercase;font-size:14px;color:var(--inchiostro)}
+.admin-giorno.chiuso > b{color:var(--grigio)}
+.admin-giorno input:disabled{opacity:.4}
+.admin-chiuso{flex-direction:row;align-items:center;gap:8px;padding-bottom:12px}
+.admin-chiuso input{width:18px;height:18px;accent-color:var(--blu)}
+@media (min-width:600px){.admin-giorno{grid-template-columns:1.1fr 1fr 1fr auto}.admin-giorno > b,.admin-chiuso{grid-column:auto}.admin-giorno > b{padding-bottom:12px}}
+.admin-scritta{background:var(--blu-tinta);border-radius:var(--raggio);padding:14px 16px}

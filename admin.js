@@ -29,6 +29,9 @@ const stato = {
   locandine: [],    // {src, alt, w, h, titolo, testo, prezzo, nuova:File|null}
   rientroLocandine: '      ',
   liste: [],        // {file, regione, etichetta, rientro, voci:[{nome,desc,prezzo,casa}]}
+  orari: null,      // 7 giorni, indice 0 = domenica: {apre:'HH:MM', chiude:'HH:MM'} oppure null se chiuso
+  rientroOrari: '        ',
+  scritte: [],      // {file, regione, etichetta, valore, meta?}
 };
 
 const ETICHETTE = {
@@ -42,6 +45,29 @@ const ETICHETTE = {
   'cocktail': 'Cocktail (aperitivo)',
   'frittini': 'Frittini (aperitivo)',
 };
+
+const ETICHETTE_SCRITTE = {
+  'apertura': 'La frase di apertura, in cima al sito',
+  'colazione': 'Colazione',
+  'pizzeria': 'Pizzeria',
+  'menu': 'Sotto «Dal forno alla sala»',
+  'offerte': 'Sotto «I menù del giorno»',
+  'formula': 'La formula aperitivo',
+  'formula-prezzo': 'Formula aperitivo: il prezzo, solo il numero',
+  'birre': 'Sotto i cocktail: le birre',
+  'lista-cocktail': 'Sotto i frittini',
+  'tabacchi': 'Tabaccheria',
+  'menu-intro': 'Pagina del menù: sotto il titolo',
+  'pizze-nota': 'Pagina del menù: sotto le pizze',
+  'panini-nota': 'Pagina del menù: sotto i panini',
+  'allergeni': 'Pagina del menù: in fondo',
+};
+
+// Gli orari: indice 0 = domenica come getDay(). SETTIMANA e' l'ordine in cui
+// si legge una settimana, da lunedi'.
+const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+const GIORNI_BREVI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+const SETTIMANA = [1, 2, 3, 4, 5, 6, 0];
 
 // ── Le regioni marcate ──────────────────────────────────────────────────────
 // Si cercano per nome dentro il testo, mai per posizione: cosi' una riscrittura
@@ -127,6 +153,40 @@ function leggiListe(testo, file) {
   });
 }
 
+// Gli orari stanno in un posto solo, la lista in #dove: la pagina pubblica
+// legge da li' anche la linea del giorno. Ogni <li> porta i suoi giorni
+// (data-giorni) e due <time>; senza <time> quel giorno e' chiuso.
+function leggiOrari(testo) {
+  const r = regione(testo, 'orari', 'settimana');
+  if (!r) return null;
+  stato.rientroOrari = (r.dentro.match(/\n( *)<li/) || [null, '        '])[1];
+  const orari = Array(7).fill(null);
+  for (const li of dom(r.dentro).querySelectorAll('li')) {
+    const t = li.querySelectorAll('time');
+    const fascia = t.length === 2 ? { apre: t[0].getAttribute('datetime'), chiude: t[1].getAttribute('datetime') } : null;
+    for (const g of (li.dataset.giorni || '').split(',')) if (g !== '') orari[+g] = fascia;
+  }
+  return orari;
+}
+
+// La descrizione per Google e' un attributo, e in un attributo un commento
+// HTML non ci sta: la si trova con la sua espressione.
+const DESCRIZIONE = /(<meta name="description" content=")([^"]*)(")/;
+
+function leggiScritte(testo, file) {
+  const scritte = nomiRegioni(testo, 'scritta').map((nome) => ({
+    file, regione: nome, etichetta: ETICHETTE_SCRITTE[nome] || nome,
+    valore: daHtml(regione(testo, 'scritta', nome).dentro),
+  }));
+  const m = testo.match(DESCRIZIONE);
+  if (m) scritte.push({
+    file, regione: 'descrizione', meta: true,
+    etichetta: (file === 'menu.html' ? 'Pagina del menù: la' : 'La') + ' descrizione per Google, sotto il titolo nei risultati',
+    valore: daHtml(m[2].replace(/&quot;/g, '"').replace(/&#39;/g, "'")),
+  });
+  return scritte;
+}
+
 // ── Scrittura del markup ────────────────────────────────────────────────────
 // Due scappamenti, non uno: nel testo l'apice dritto va lasciato com'e' —
 // «'nduja» e «d'oliva» stanno nel menù — o ogni salvataggio riscriverebbe
@@ -163,6 +223,83 @@ function scriviScatto(dentro, i, s) {
     ? '<img src="' + escA(s.src) + '" alt="' + escA(s.alt) + '" width="' + s.w + '" height="' + s.h + '" loading="lazy">'
     : tag);
 }
+
+// ── Gli orari: dal modello alle tre regioni ─────────────────────────────────
+// "05:50" → "5:50", come sull'insegna
+const oraBreve = (hhmm) => String(+hhmm.slice(0, 2)) + ':' + hhmm.slice(3, 5);
+const maiuscola = (s) => s[0].toUpperCase() + s.slice(1);
+
+// I giorni di fila con lo stesso orario stanno su una riga: «Martedì – sabato».
+function gruppiOrari(orari) {
+  const chiave = (f) => (f ? f.apre + '-' + f.chiude : 'chiuso');
+  const gruppi = [];
+  for (const g of SETTIMANA) {
+    const u = gruppi.at(-1);
+    if (u && chiave(u.fascia) === chiave(orari[g])) u.giorni.push(g);
+    else gruppi.push({ giorni: [g], fascia: orari[g] });
+  }
+  return gruppi;
+}
+
+function scriviOrariLista(orari) {
+  const r = stato.rientroOrari;
+  const righe = gruppiOrari(orari).map(({ giorni, fascia }) =>
+    r + '<li data-giorni="' + giorni.join(',') + '"><b>' + maiuscola(GIORNI[giorni[0]]) +
+    (giorni.length > 1 ? ' &ndash; ' + GIORNI[giorni.at(-1)] : '') + '</b><em>' +
+    (fascia
+      ? '<time datetime="' + fascia.apre + '">' + oraBreve(fascia.apre) + '</time> &ndash; <time datetime="' + fascia.chiude + '">' + oraBreve(fascia.chiude) + '</time>'
+      : 'chiuso') +
+    '</em></li>');
+  return '\n' + righe.join('\n') + '\n' + r;
+}
+
+function scriviOrariPiede(orari) {
+  return gruppiOrari(orari).map(({ giorni, fascia }) =>
+    GIORNI_BREVI[giorni[0]] + (giorni.length > 1 ? '&ndash;' + GIORNI_BREVI[giorni.at(-1)] : '') + ' ' +
+    (fascia ? oraBreve(fascia.apre) + '&ndash;' + oraBreve(fascia.chiude) : 'chiuso')).join(' · ');
+}
+
+function scriviOrariNota(orari) {
+  const chiusi = SETTIMANA.filter((g) => !orari[g]).map((g) => (g === 0 ? 'la ' : 'il ') + GIORNI[g]);
+  if (!chiusi.length) return 'Nessun giorno di chiusura.';
+  if (chiusi.length === 7) return 'Chiuso tutta la settimana.';
+  return 'Chiuso ' + (chiusi.length === 1 ? chiusi[0] : chiusi.slice(0, -1).join(', ') + ' e ' + chiusi.at(-1)) + '.';
+}
+
+// La settimana e la nota stanno solo in index.html, il piede in tutte e due
+// le pagine. Una regione che manca ferma tutto (riscrivi alza l'errore).
+function riscriviOrari(testi, orari) {
+  const fuori = { ...testi };
+  fuori['index.html'] = riscrivi(fuori['index.html'], 'orari', 'settimana', scriviOrariLista(orari));
+  fuori['index.html'] = riscrivi(fuori['index.html'], 'orari', 'nota', scriviOrariNota(orari));
+  for (const f of ['index.html', 'menu.html']) fuori[f] = riscrivi(fuori[f], 'orari', 'piede', scriviOrariPiede(orari));
+  return fuori;
+}
+
+// ── Le scritte: si modificano come si scrivono, non come HTML ────────────────
+// **due asterischi** per il grassetto, un a capo per <br>. Le entita' HTML
+// diverse da & < > non si toccano: nei testi marcati oggi non ce ne sono, e
+// la pagina di prova pretende il giro completo identico al byte.
+const daHtml = (h) => h.replace(/<\/?strong>/g, '**').replace(/<br>/g, '\n')
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const aHtml = (t) => escT(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+function riscriviScritte(testi, scritte) {
+  const fuori = { ...testi };
+  for (const s of scritte) {
+    if (s.meta) {
+      if (!DESCRIZIONE.test(fuori[s.file])) throw new Error('regione-sparita:descrizione ' + s.file);
+      fuori[s.file] = fuori[s.file].replace(DESCRIZIONE, (_, a, __, z) => a + escA(s.valore) + z);
+    } else {
+      fuori[s.file] = riscrivi(fuori[s.file], 'scritta', s.regione, aHtml(s.valore));
+    }
+  }
+  return fuori;
+}
+
+// Il numero accanto a «Pizze» segue le liste: non si scrive a mano.
+const contoPizze = (liste) => liste.filter((l) => l.regione === 'pizze' || l.regione === 'pizze-altre')
+  .reduce((n, l) => n + l.voci.length, 0);
 
 // ── Cartella del sito ───────────────────────────────────────────────────────
 // Il picker vuole un gesto dell'utente: va chiamato per primo dentro il click,
@@ -256,7 +393,8 @@ function scusa(err, ripiego) {
 function mostraScatti() {
   const box = document.getElementById('scatti');
   box.innerHTML = '';
-  for (const s of stato.scatti) box.append(rigaScatto(s));
+  // la locandina degli orari sta nella sezione degli orari, non qui
+  for (const s of stato.scatti) if (s.regione !== 'orari') box.append(rigaScatto(s));
 }
 
 function rigaScatto(s) {
@@ -391,6 +529,76 @@ document.getElementById('aggiungi-voce')?.addEventListener('click', () => {
   document.querySelector('#voci .admin-voce:last-child input')?.focus();
 });
 
+// ── Gli orari, giorno per giorno ────────────────────────────────────────────
+
+function mostraOrari() {
+  const box = document.getElementById('orari');
+  box.innerHTML = '';
+  if (!stato.orari) { box.innerHTML = '<p class="admin-sub">Non trovo gli orari nel sito.</p>'; return; }
+  for (const g of SETTIMANA) box.append(rigaGiorno(g));
+  // la locandina con gli orari sta qui: se cambiano loro deve cambiare anche lei
+  const l = document.getElementById('locandina-orari');
+  l.innerHTML = '';
+  for (const s of stato.scatti) if (s.regione === 'orari') l.append(rigaScatto(s));
+}
+
+function rigaGiorno(g) {
+  const div = document.createElement('div');
+  div.className = 'admin-giorno';
+  div.innerHTML =
+    '<b></b>' +
+    '<label>Apre<input type="time" data-c="apre"></label>' +
+    '<label>Chiude<input type="time" data-c="chiude"></label>' +
+    '<label class="admin-chiuso"><input type="checkbox">Chiuso</label>';
+  div.querySelector('b').textContent = maiuscola(GIORNI[g]);
+  const chiuso = div.querySelector('input[type=checkbox]');
+  const ore = [...div.querySelectorAll('input[type=time]')];
+  // un giorno chiuso tiene i campi compilati con un orario di comodo: togliendo
+  // la spunta si riparte da qualcosa, non da vuoto
+  const fascia = stato.orari[g] || { apre: '05:30', chiude: '21:30' };
+  const aggiorna = () => {
+    div.classList.toggle('chiuso', chiuso.checked);
+    for (const i of ore) i.disabled = chiuso.checked;
+    stato.orari[g] = chiuso.checked ? null : { apre: ore[0].value, chiude: ore[1].value };
+  };
+  chiuso.checked = !stato.orari[g];
+  for (const i of ore) { i.value = fascia[i.dataset.c]; i.addEventListener('input', aggiorna); }
+  chiuso.addEventListener('change', aggiorna);
+  aggiorna();
+  return div;
+}
+
+// Prima di scrivere: un giorno aperto ha tutte e due le ore, e chiude dopo
+// che apre. "HH:MM" si confronta come testo, e' gia' ordinato.
+function controllaOrari() {
+  if (!stato.orari) return '';
+  for (const g of SETTIMANA) {
+    const f = stato.orari[g], nome = (g === 0 ? 'La ' : 'Il ') + GIORNI[g];
+    if (!f) continue;
+    if (!f.apre || !f.chiude) return nome + ' è aperto ma manca un orario. Se quel giorno è chiuso, metti la spunta.';
+    if (f.apre >= f.chiude) return nome + ' apre alle ' + oraBreve(f.apre) + ' e chiude alle ' + oraBreve(f.chiude) + ': la chiusura deve venire dopo l\'apertura.';
+  }
+  return '';
+}
+
+// ── Le scritte ──────────────────────────────────────────────────────────────
+
+function mostraScritte() {
+  const box = document.getElementById('scritte');
+  box.innerHTML = '';
+  for (const s of stato.scritte) {
+    const label = document.createElement('label');
+    label.className = 'admin-scritta';
+    label.textContent = s.etichetta;
+    const area = document.createElement('textarea');
+    area.value = s.valore;
+    area.rows = Math.min(6, 1 + Math.floor(s.valore.length / 70) + (s.valore.match(/\n/g) || []).length);
+    area.addEventListener('input', () => { s.valore = area.value; });
+    label.append(area);
+    box.append(label);
+  }
+}
+
 // ── Aggiungi una locandina ──────────────────────────────────────────────────
 
 const formLocandina = document.getElementById('form-locandina');
@@ -442,9 +650,11 @@ bottoneSalva?.addEventListener('click', async () => {
   const etichetta = bottoneSalva.textContent;
   bottoneSalva.textContent = 'Un attimo…';
   try {
+    const male = controllaOrari(); // sincrono: non consuma il gesto del picker
+    if (male) { parla(male, true); return; }
     const dir = await cartella(); // per prima: il picker vuole il gesto fresco
     const foto = [];              // {percorso, blob} da scrivere o scaricare
-    const testi = Object.fromEntries(Object.entries(stato.testo));
+    let testi = Object.fromEntries(Object.entries(stato.testo));
 
     // 1. le foto nuove: si rimpiccioliscono e prendono un nome che non collide
     for (const s of stato.scatti) {
@@ -476,6 +686,13 @@ bottoneSalva?.addEventListener('click', async () => {
     for (const lista of stato.liste) {
       testi[lista.file] = riscrivi(testi[lista.file], 'menu', lista.regione, scriviVoci(lista));
     }
+    if (regione(testi['menu.html'], 'conto', 'pizze')) {
+      testi['menu.html'] = riscrivi(testi['menu.html'], 'conto', 'pizze', String(contoPizze(stato.liste)));
+    }
+
+    // 3-bis. gli orari nelle loro tre regioni, e le scritte
+    if (stato.orari) testi = riscriviOrari(testi, stato.orari);
+    testi = riscriviScritte(testi, stato.scritte);
 
     // 4. si scrive: prima le foto, poi le pagine che le nominano
     const cambiate = Object.keys(testi).filter((f) => testi[f] !== stato.testo[f]);
@@ -522,10 +739,17 @@ if (bottoneSalva) Promise.all(['index.html', 'menu.html'].map((f) =>
     ...leggiListe(stato.testo['menu.html'], 'menu.html'),
     ...leggiListe(stato.testo['index.html'], 'index.html'),
   ];
+  stato.orari = leggiOrari(stato.testo['index.html']);
+  stato.scritte = [
+    ...leggiScritte(stato.testo['index.html'], 'index.html'),
+    ...leggiScritte(stato.testo['menu.html'], 'menu.html'),
+  ];
   mostraScatti();
   mostraLocandine();
   riempiTendina();
   mostraVoci();
+  mostraOrari();
+  mostraScritte();
   bottoneSalva.disabled = false;
 }).catch((err) => {
   document.getElementById('scatti').innerHTML = '';
