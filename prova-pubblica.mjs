@@ -76,8 +76,10 @@ const conPrezzo = PAGINE['menu.html'].replace('<b>Fiftynine</b><small>pomodoro, 
 // 1. si fallisce chiusi
 azzera(); ambiente({ ADMIN_PASSWORD: '' });
 prova('senza parola d’ordine configurata non pubblica', (await chiama('GET')).stato === 503);
-azzera(); ambiente({ ADMIN_PASSWORD: 'corta123' });
-prova('con una parola d’ordine corta non pubblica', (await chiama('GET', undefined, 'corta123')).stato === 503);
+azzera(); ambiente({ ADMIN_PASSWORD: 'prova' });
+// fino alla consegna la parola è provvisoria e corta: deve funzionare lo stesso
+prova('una parola d’ordine corta funziona', (await chiama('GET', undefined, 'prova')).stato === 200);
+prova('e quella sbagliata resta sbagliata', (await chiama('GET', undefined, 'prova2')).stato === 401);
 azzera(); ambiente({ GITHUB_TOKEN: '' });
 prova('senza la chiave di GitHub non pubblica', (await chiama('GET')).stato === 503);
 azzera(); ambiente({ GITHUB_REPO: '' });

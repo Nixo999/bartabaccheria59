@@ -12,10 +12,15 @@
 //
 // Tre impostazioni su Netlify (Site configuration → Environment variables),
 // messe da Nicola e mai scritte nel repo:
-//   ADMIN_PASSWORD  la parola d'ordine del proprietario, almeno 12 caratteri
+//   ADMIN_PASSWORD  la parola d'ordine della pagina di modifica
 //   GITHUB_TOKEN    token fine-grained su questo repo solo, «Contents: read and write»
 //   GITHUB_REPO     il repo collegato a Netlify, nella forma owner/nome
-// Ne manca una, o la parola è corta: non si pubblica niente. Si fallisce chiusi.
+// Ne manca una: non si pubblica niente. Si fallisce chiusi.
+//
+// La lunghezza non si controlla piu': fino alla consegna al proprietario la
+// parola e' provvisoria e corta per scelta di Nicola (23 settembre 2026), e
+// si cambia su Netlify, non qui. Quanto e' debole non lo dice il codice: il
+// danno possibile lo limitano i controlli qui sotto, che non si toccano.
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 
@@ -36,7 +41,7 @@ const risposta = (stato, corpo) => new Response(JSON.stringify(corpo), {
 function impostazioni() {
   const e = process.env;
   const repo = e.GITHUB_REPO || (e.REPOSITORY_URL || '').replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '');
-  if (!e.ADMIN_PASSWORD || e.ADMIN_PASSWORD.length < 12) return null;
+  if (!e.ADMIN_PASSWORD) return null;
   if (!e.GITHUB_TOKEN || !/^[\w.-]+\/[\w.-]+$/.test(repo)) return null;
   return { parola: e.ADMIN_PASSWORD, token: e.GITHUB_TOKEN, repo, ramo: e.GITHUB_BRANCH || 'main' };
 }

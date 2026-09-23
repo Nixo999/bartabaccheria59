@@ -112,10 +112,10 @@ La forma di una voce di listino è fissa e il codice ci conta:
   inietta un commento e uno script suo — e riscrivere quella versione
   sporcherebbe il repo a ogni salvataggio.
 - **Tre impostazioni su Netlify**, messe da Nicola e mai nel repo:
-  `ADMIN_PASSWORD` (almeno 12 caratteri), `GITHUB_TOKEN` (fine-grained, solo
+  `ADMIN_PASSWORD`, `GITHUB_TOKEN` (fine-grained, solo
   questo repo, «Contents: read and write»), `GITHUB_REPO` (`owner/nome` del repo
   collegato a Netlify; se Netlify espone `REPOSITORY_URL` la funzione usa
-  quello). Ne manca una o la parola è corta: risponde 503 e non pubblica
+  quello). Ne manca una: risponde 503 e non pubblica
   niente. **Si fallisce chiusi.** Cambiate le impostazioni serve un nuovo deploy.
 - **La parola d'ordine è un permesso limitato**: fuori dai pezzi marcati (e dalle
   due `meta`, descrizione e versione) la pagina deve restare **identica al
@@ -156,6 +156,14 @@ riscrittura delle regioni, fra cui il giro completo che deve lasciare i file
 `admin.js`, si riapre quella pagina prima di committare.
 
 ## ⚠️ Cose aperte
+
+0. **La parola d'ordine è provvisoria e debole**, per scelta di Nicola il 23
+   settembre 2026: «per adesso [...] e poi la cambiamo quando daremo davvero
+   tutto in mano al cliente». Il valore non sta qui (il repo è pubblico): sta
+   in `ADMIN_PASSWORD` su Netlify. **Prima di dare la pagina al proprietario si
+   cambia lì, poi un nuovo deploy.** Finché resta così, chi indovina la parola
+   può cambiare testi, prezzi e foto del sito — non script né altre parti: i
+   controlli della funzione restano quelli.
 
 1. **La pubblicazione vera non è ancora stata fatta**: la funzione è provata
    con GitHub finto, e il corpo che produce il browser è passato dalla funzione
