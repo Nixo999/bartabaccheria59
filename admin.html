@@ -29,27 +29,23 @@
   <div class="admin-testa">
     <div>
       <h1>Modifica il sito</h1>
-      <p class="admin-sub">Le foto, le offerte, il menù con i prezzi, gli orari e le scritte. Si cambia qui, si salva una volta sola.</p>
+      <p class="admin-sub">Le foto, le offerte, il menù con i prezzi, gli orari e le scritte. Si cambia qui e si pubblica: il sito si aggiorna da solo in un minuto circa.</p>
     </div>
-    <button class="btn btn-pieno" id="salva" type="button" disabled>Salva tutto</button>
+    <button class="btn btn-pieno" id="salva" type="button" disabled hidden>Pubblica</button>
   </div>
 
-  <!-- Su Chrome ed Edge da computer la pagina scrive da sola nella cartella del
-       sito. Su Safari e sul telefono no: la File System Access API non esiste,
-       e allora consegna i file da scaricare. -->
-  <p class="admin-avviso" id="avviso-download" hidden>
-    Da questo browser la pagina non può scrivere dentro il sito: quando salvi ti
-    dà i file da scaricare — le foto nuove e le pagine modificate. Mandali a
-    Nicola: le modifiche si vedono online quando le pubblica lui. Dal computer,
-    con Chrome o Edge, invece scrive tutto da sola.
-  </p>
-  <p class="admin-avviso" id="nota-cartella" hidden>
-    La prima volta che salvi ti chiede dove sta il sito: scegli la cartella
-    <code>bartabaccheria59</code>, quella che contiene <code>index.html</code>,
-    e dai il permesso di modificarla.
-  </p>
-
   <p class="admin-esito" id="esito" hidden></p>
+
+  <!-- La parola d'ordine la mette su Netlify Nicola (ADMIN_PASSWORD): qui si
+       digita e resta valida finche' la scheda e' aperta. -->
+  <form class="admin-entra" id="entra" hidden>
+    <label for="parola">Parola d’ordine</label>
+    <input id="parola" type="password" autocomplete="current-password" required>
+    <button class="btn btn-pieno" type="submit">Entra</button>
+    <p class="form-hint">Resta valida finché non chiudi questa scheda.</p>
+  </form>
+
+  <div id="editor" hidden>
 
   <!-- ─────────── FOTO ─────────── -->
   <section class="admin-blocco">
@@ -92,7 +88,7 @@
           <p class="field-error" hidden>Scrivi il prezzo, anche approssimato: «da 8 €» va benissimo.</p>
         </div>
         <button class="btn btn-pieno" type="submit">Aggiungi all'elenco</button>
-        <p class="form-hint">Si aggiunge qui nell'elenco. Va nel sito quando premi «Salva tutto».</p>
+        <p class="form-hint">Si aggiunge qui nell'elenco. Va online quando premi «Pubblica».</p>
       </form>
     </details>
   </section>
@@ -137,6 +133,8 @@
   <p class="admin-sub admin-piede">
     Il menù in PDF, il logo e i titoli delle sezioni non si cambiano da qui: per quelli serve Nicola.
   </p>
+
+  </div>
 
 </main>
 

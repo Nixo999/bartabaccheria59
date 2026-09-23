@@ -1,29 +1,24 @@
-// ── Modifica il sito del bar: uno strumento locale, non un'area riservata ──
+// ── Modifica il sito del bar, e pubblica ──
 //
 // Lo store sono i file del sito, index.html e menu.html: niente database,
-// niente JSON di mezzo, niente login. Ogni pezzo modificabile del sito sta
-// fra due commenti — <!-- @menu pizze --> … <!-- /@menu --> — e si riscrive
-// solo quello che c'e' dentro: il resto del file non lo tocca nessuno, e il
-// diff resta leggibile.
+// niente JSON di mezzo. Ogni pezzo modificabile sta fra due commenti —
+// <!-- @menu pizze --> … <!-- /@menu --> — e si riscrive solo quello che c'e'
+// dentro: il resto del file non lo tocca nessuno, e il diff resta leggibile.
 //
-// La pagina non e' protetta perche' da qui non si scrive da nessuna parte se
-// non sul disco di chi la apre. Due strade, decide il browser e non l'utente:
-//  · con la File System Access API (Chrome/Edge da computer) scrive da se'
-//    nella cartella del sito;
-//  · senza (Safari, iPhone) consegna gli stessi file da scaricare.
-// In tutti e due i casi va online quando chi ha il repo fa il commit.
+// Dal 23 settembre 2026 la pagina pubblica da sola: legge i file dal repo e
+// ci rimanda quelli nuovi attraverso netlify/functions/pubblica.mjs, che fa un
+// commit; Netlify vede il commit e rimette online il sito in un minuto circa.
+// Per questo adesso c'e' una parola d'ordine: prima non serviva perche' la
+// pagina scriveva solo sul disco di chi la apriva. «Deve andare direttamente
+// online» (Nicola): il disco e i download sono stati tolti.
 
-const supportata = 'showDirectoryPicker' in window;
 const esito = document.getElementById('esito');
 const bottoneSalva = document.getElementById('salva');
-
-// `?.`: cosi' il file si carica anche fuori da admin.html — serve alla
-// pagina di prova, che verifica la lettura e la riscrittura delle regioni.
-document.getElementById('avviso-download')?.toggleAttribute('hidden', supportata);
-document.getElementById('nota-cartella')?.toggleAttribute('hidden', !supportata);
+const API = '/api/pubblica';
 
 // ── Lo stato: il testo dei due file piu' il modello di quello che si modifica ──
 const stato = {
+  base: '',         // il commit da cui sono stati letti i file: la funzione rifiuta se nel frattempo e' cambiato
   testo: {},        // 'index.html' → il testo come e' stato letto
   scatti: [],       // {file, regione, i, src, alt, w, h, nuova:File|null}
   locandine: [],    // {src, alt, w, h, titolo, testo, prezzo, nuova:File|null}
@@ -172,6 +167,9 @@ function leggiOrari(testo) {
 // La descrizione per Google e' un attributo, e in un attributo un commento
 // HTML non ci sta: la si trova con la sua espressione.
 const DESCRIZIONE = /(<meta name="description" content=")([^"]*)(")/;
+// La versione cambia a ogni pubblicazione: e' il segno che la pagina cerca sul
+// sito online per dire «e' online» invece di «forse».
+const VERSIONE = /(<meta name="versione" content=")([^"]*)(")/;
 
 function leggiScritte(testo, file) {
   const scritte = nomiRegioni(testo, 'scritta').map((nome) => ({
@@ -301,49 +299,52 @@ function riscriviScritte(testi, scritte) {
 const contoPizze = (liste) => liste.filter((l) => l.regione === 'pizze' || l.regione === 'pizze-altre')
   .reduce((n, l) => n + l.voci.length, 0);
 
-// ── Cartella del sito ───────────────────────────────────────────────────────
-// Il picker vuole un gesto dell'utente: va chiamato per primo dentro il click,
-// prima di qualunque await, o l'attivazione e' gia' scaduta.
-// ponytail: la scelta non si ricorda fra sessioni (servirebbe IndexedDB); `id`
-// fa almeno ripartire il dialogo dall'ultima cartella.
-let radice = null;
+// ── La funzione che pubblica ────────────────────────────────────────────────
+// La parola d'ordine sta in sessionStorage, non in localStorage: vale finche'
+// la scheda e' aperta, e nessuna altra scheda dello stesso sito la puo' leggere
+// — index.html carica GSAP da un CDN, e quello e' codice di altri.
+const CHIAVE = 'bartabacchi59-parola';
+const parolaSalvata = () => { try { return sessionStorage.getItem(CHIAVE) || ''; } catch { return ''; } };
+const ricordaParola = (p) => { try { if (p) sessionStorage.setItem(CHIAVE, p); else sessionStorage.removeItem(CHIAVE); } catch {} };
 
-async function cartella() {
-  if (radice) return radice;
-  if (!supportata) return null;
-  let dir;
-  try {
-    dir = await showDirectoryPicker({ mode: 'readwrite', id: 'bartabaccheria59' });
-  } catch {
-    return null; // annullato: si passa ai download
+async function chiama(metodo, corpo) {
+  const r = await fetch(API, {
+    method: metodo,
+    cache: 'no-store',
+    headers: { authorization: 'Bearer ' + parolaSalvata(), ...(corpo ? { 'content-type': 'application/json' } : {}) },
+    body: corpo ? JSON.stringify(corpo) : undefined,
+  });
+  let dati = {};
+  try { dati = await r.json(); } catch {}
+  if (!r.ok) {
+    const e = new Error(dati.errore || 'http ' + r.status);
+    e.stato = r.status;
+    throw e;
   }
-  try {
-    await dir.getFileHandle('index.html');
-  } catch {
-    throw new Error('cartella-sbagliata');
-  }
-  radice = dir;
-  return dir;
+  return dati;
 }
 
-async function scrivi(dir, percorso, dati) {
-  const parti = percorso.split('/');
-  let d = dir;
-  for (const p of parti.slice(0, -1)) d = await d.getDirectoryHandle(p, { create: true });
-  const w = await (await d.getFileHandle(parti.at(-1), { create: true })).createWritable();
-  await w.write(dati);
-  await w.close();
-}
+const base64 = (blob) => new Promise((ok, ko) => {
+  const r = new FileReader();
+  r.onload = () => ok(String(r.result).split(',')[1]);
+  r.onerror = () => ko(r.error);
+  r.readAsDataURL(blob);
+});
 
-// Due download di fila: il secondo il browser lo lascia cadere se parte
-// nello stesso istante del primo. Si distanziano.
-function scarica(blob, nome) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = nome;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-  return new Promise((r) => setTimeout(r, 400));
+const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Dopo il commit Netlify ci mette un minuto circa. Si guarda il sito vero
+// finche' non porta la versione appena scritta: tre minuti, poi si dice la
+// verita' invece di «fatto».
+async function aspettaOnline(versione) {
+  for (let i = 0; i < 45; i++) {
+    await pausa(4000);
+    try {
+      const t = await (await fetch('index.html?v=' + Date.now(), { cache: 'no-store' })).text();
+      if (t.includes(versione)) return true;
+    } catch {}
+  }
+  return false;
 }
 
 // ── Foto: si rimpiccioliscono qui ───────────────────────────────────────────
@@ -376,14 +377,18 @@ function parla(testo, male) {
 }
 
 function scusa(err, ripiego) {
-  if (err.message === 'cartella-sbagliata') {
-    return 'Quella non è la cartella del sito: scegli quella che contiene index.html.';
-  }
   if (String(err.message).startsWith('regione-sparita')) {
     return 'Il sito è cambiato da quando hai aperto questa pagina e non ci scrivo sopra alla cieca. Ricarica la pagina e rifai la modifica.';
   }
-  if (err.name === 'NotAllowedError') {
-    return 'Non mi hai dato il permesso di modificare la cartella. Riprova e scegli «Consenti».';
+  if (err instanceof TypeError) return 'Niente connessione: controlla internet e riprova.';
+  switch (err.stato) {
+    case 401: return 'Parola d’ordine sbagliata.';
+    case 404: return 'Da questo indirizzo non si pubblica: apri la pagina dal sito online.';
+    case 409: return 'Il sito è stato cambiato da un’altra parte mentre lavoravi — da Nicola o da un’altra finestra. Ricarica la pagina: le modifiche di adesso vanno rifatte.';
+    case 413: return 'Troppe foto insieme, o troppo grandi: pubblicane una parte, poi il resto.';
+    case 422: return 'Non pubblico: la modifica toccherebbe parti del sito che da qui non si cambiano. Scrivi a Nicola.';
+    case 502: return 'GitHub ha rifiutato la pubblicazione: la chiave del sito è scaduta o non ha i permessi. Scrivi a Nicola.';
+    case 503: return 'La pubblicazione non è ancora attiva: mancano le impostazioni su Netlify. Scrivi a Nicola.';
   }
   return ripiego;
 }
@@ -639,10 +644,13 @@ formLocandina?.addEventListener('submit', (e) => {
   formLocandina.reset();
   anteprima.hidden = true;
   mostraLocandine();
-  parla('«' + titolo + '» è nell\'elenco. Va nel sito quando premi «Salva tutto».');
+  parla('«' + titolo + '» è nell\'elenco. Va online quando premi «Pubblica».');
 });
 
-// ── Salva ───────────────────────────────────────────────────────────────────
+// ── Pubblica ────────────────────────────────────────────────────────────────
+
+const NOMI_PAGINE = { 'index.html': 'pagina principale', 'menu.html': 'menù' };
+let ultimaAttesa = 0;
 
 bottoneSalva?.addEventListener('click', async () => {
   esito.hidden = true;
@@ -650,10 +658,9 @@ bottoneSalva?.addEventListener('click', async () => {
   const etichetta = bottoneSalva.textContent;
   bottoneSalva.textContent = 'Un attimo…';
   try {
-    const male = controllaOrari(); // sincrono: non consuma il gesto del picker
+    const male = controllaOrari();
     if (male) { parla(male, true); return; }
-    const dir = await cartella(); // per prima: il picker vuole il gesto fresco
-    const foto = [];              // {percorso, blob} da scrivere o scaricare
+    const foto = [];              // {percorso, blob}: vanno nello stesso commit delle pagine
     let testi = Object.fromEntries(Object.entries(stato.testo));
 
     // 1. le foto nuove: si rimpiccioliscono e prendono un nome che non collide
@@ -694,45 +701,74 @@ bottoneSalva?.addEventListener('click', async () => {
     if (stato.orari) testi = riscriviOrari(testi, stato.orari);
     testi = riscriviScritte(testi, stato.scritte);
 
-    // 4. si scrive: prima le foto, poi le pagine che le nominano
     const cambiate = Object.keys(testi).filter((f) => testi[f] !== stato.testo[f]);
-    if (!cambiate.length && !foto.length) { parla('Non hai cambiato niente: non c\'è niente da salvare.'); return; }
+    if (!cambiate.length && !foto.length) { parla('Non hai cambiato niente: non c\'è niente da pubblicare.'); return; }
+    const cosa = [...cambiate.map((f) => NOMI_PAGINE[f]), ...(foto.length ? [foto.length + ' foto'] : [])].join(', ');
 
-    if (dir) {
-      for (const f of foto) await scrivi(dir, f.percorso, f.blob);
-      for (const f of cambiate) await scrivi(dir, f, testi[f]);
-      parla('Salvato nei file del sito' + (foto.length ? ' (' + foto.length + ' foto nuove)' : '') +
-            '. Va online quando Nicola manda su le modifiche.');
-    } else {
-      for (const f of foto) await scarica(f.blob, f.percorso.split('/').pop());
-      for (const f of cambiate) await scarica(new Blob([testi[f]], { type: 'text/html' }), f);
-      parla('Scaricati ' + (foto.length + cambiate.length) + ' file: le foto vanno in assets/img/, ' +
-            'le pagine nella cartella del sito. Mandali a Nicola, li mette lui.');
-    }
+    // 4. la versione: sempre nella pagina principale, anche se e' cambiato solo il
+    //    menù — e' li' che si guarda per sapere se il sito si e' aggiornato
+    const versione = new Date().toISOString();
+    if (!VERSIONE.test(testi['index.html'])) throw new Error('regione-sparita:versione');
+    testi['index.html'] = testi['index.html'].replace(VERSIONE, (_, a, __, z) => a + versione + z);
+    if (!cambiate.includes('index.html')) cambiate.push('index.html');
 
-    // solo a scrittura riuscita: da qui in poi il file di partenza e' questo
+    const corpo = {
+      base: stato.base,
+      testi: Object.fromEntries(cambiate.map((f) => [f, testi[f]])),
+      foto: await Promise.all(foto.map(async (f) => ({ percorso: f.percorso, dati: await base64(f.blob) }))),
+      cosa,
+    };
+    // ponytail: una richiesta sola, e Netlify ne accetta 6 MB; con le foto gia'
+    // rimpicciolite sono una decina. Oltre, si dice di pubblicare in due volte.
+    if (JSON.stringify(corpo).length > 5_500_000) { const e = new Error('troppo'); e.stato = 413; throw e; }
+
+    bottoneSalva.textContent = 'Pubblico…';
+    const { commit } = await chiama('POST', corpo);
+
+    // solo a pubblicazione riuscita: da qui in poi il punto di partenza e' questo
+    stato.base = commit;
     Object.assign(stato.testo, testi);
     for (const s of stato.scatti) s.nuova = null;
     for (const l of stato.locandine) l.nuova = null;
+
+    parla('Pubblicato. Il sito si aggiorna da solo: un minuto circa, e qui ti dico quando è fatto.');
+    const mia = ++ultimaAttesa;
+    aspettaOnline(versione).then((online) => {
+      if (mia !== ultimaAttesa) return; // nel frattempo e' partita un'altra pubblicazione: parla lei
+      parla(online
+        ? 'È online: le modifiche si vedono sul sito.'
+        : 'Pubblicato, ma il sito non si è ancora aggiornato. Guardalo di nuovo fra qualche minuto; se non cambia, scrivi a Nicola.');
+    });
   } catch (err) {
-    parla(scusa(err, 'Qualcosa non ha funzionato e non è stato salvato niente. Riprova fra un attimo.'), true);
+    if (err.stato === 401) esci();
+    parla(scusa(err, 'Qualcosa non ha funzionato e non è stato pubblicato niente. Riprova fra un attimo.'), true);
   } finally {
     bottoneSalva.disabled = false;
     bottoneSalva.textContent = etichetta;
   }
 });
 
-// ── Avvio ───────────────────────────────────────────────────────────────────
-// `no-cache`: senza, il browser tiene la copia vecchia della pagina e si
-// lavorerebbe su un menù di ieri, riscrivendolo sopra a quello buono.
+// ── Avvio: prima la parola d'ordine, poi i file dal repo ────────────────────
+// Si legge dal repo attraverso la funzione, non dal sito: Netlify rielabora
+// l'HTML che serve (i link a menu.html diventano /menu, e ci inietta uno script
+// suo), e riscrivere quella versione sporcherebbe il repo a ogni salvataggio.
 
-if (bottoneSalva) Promise.all(['index.html', 'menu.html'].map((f) =>
-  fetch(f, { cache: 'no-cache' }).then((r) => {
-    if (!r.ok) throw new Error(f + ': ' + r.status);
-    return r.text().then((t) => [f, t]);
-  })
-)).then((coppie) => {
-  for (const [f, t] of coppie) stato.testo[f] = t;
+const formEntra = document.getElementById('entra');
+const editor = document.getElementById('editor');
+
+function esci() {
+  ricordaParola('');
+  editor.hidden = true;
+  bottoneSalva.hidden = true;
+  bottoneSalva.disabled = true;
+  formEntra.hidden = false;
+  document.getElementById('parola').value = '';
+}
+
+async function carica() {
+  const { base, files } = await chiama('GET');
+  stato.base = base;
+  stato.testo = { 'index.html': files['index.html'], 'menu.html': files['menu.html'] };
   stato.scatti = leggiScatti(stato.testo['index.html'], 'index.html');
   stato.locandine = leggiLocandine(stato.testo['index.html']);
   stato.liste = [
@@ -750,9 +786,28 @@ if (bottoneSalva) Promise.all(['index.html', 'menu.html'].map((f) =>
   mostraVoci();
   mostraOrari();
   mostraScritte();
+  formEntra.hidden = true;
+  editor.hidden = false;
+  bottoneSalva.hidden = false;
   bottoneSalva.disabled = false;
-}).catch((err) => {
-  document.getElementById('scatti').innerHTML = '';
-  parla('Non riesco a leggere le pagine del sito (' + err.message + '). Se hai aperto questo file ' +
-        'con un doppio clic, apri invece il sito da un indirizzo che comincia con http.', true);
+}
+
+function nonEntra(err) {
+  if (err.stato === 401) esci();
+  else formEntra.hidden = false;
+  parla(scusa(err, 'Non riesco a leggere il sito. Riprova fra un attimo.'), true);
+}
+
+formEntra?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const tasto = formEntra.querySelector('button');
+  tasto.disabled = true;
+  esito.hidden = true;
+  ricordaParola(document.getElementById('parola').value);
+  try { await carica(); } catch (err) { nonEntra(err); } finally { tasto.disabled = false; }
 });
+
+if (bottoneSalva) {
+  if (parolaSalvata()) carica().catch(nonEntra);
+  else formEntra.hidden = false;
+}

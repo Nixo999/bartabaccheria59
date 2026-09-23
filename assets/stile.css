@@ -532,7 +532,7 @@ footer .firma img{height:18px;width:auto}
 .admin-voce .link-line{align-self:end;padding-bottom:11px}
 
 .admin label{display:flex;flex-direction:column;gap:5px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--grigio);min-width:0}
-.admin input[type=text],.admin input[type=time],.admin textarea,.admin select{
+.admin input[type=text],.admin input[type=time],.admin input[type=password],.admin textarea,.admin select{
   font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--inchiostro);
   background:var(--bianco);border:1px solid var(--linea);border-radius:8px;padding:10px 12px;width:100%;
 }
@@ -565,3 +565,7 @@ footer .firma img{height:18px;width:auto}
 .admin-chiuso input{width:18px;height:18px;accent-color:var(--blu)}
 @media (min-width:600px){.admin-giorno{grid-template-columns:1.1fr 1fr 1fr auto}.admin-giorno > b,.admin-chiuso{grid-column:auto}.admin-giorno > b{padding-bottom:12px}}
 .admin-scritta{background:var(--blu-tinta);border-radius:var(--raggio);padding:14px 16px}
+
+/* l'ingresso della pagina di modifica: una parola d'ordine, poi l'editor */
+.admin-entra{max-width:420px;display:flex;flex-direction:column;gap:10px;margin:10px 0 30px}
+.admin-entra .btn{align-self:flex-start}

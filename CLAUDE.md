@@ -14,6 +14,12 @@ che ha due `pushurl` su `origin` e con un `git push` scrive su tutti e due.
 Il secondo si allinea con `git pull` e basta. È già successo una volta che le
 copie divergessero: se `git log` dei due non coincide, il primo comanda.
 
+⚠️ **Dal 23 settembre 2026 nel repo scrive anche il proprietario**, dalla pagina
+di modifica, con commit «Dalla pagina di modifica: …». Quei commit vanno solo
+sul repo collegato a Netlify (`GITHUB_REPO`), non sull'altro. Quindi: **prima di
+lavorare in locale, `git pull`**; il push successivo dal Mac riallinea anche il
+secondo repo. Il sito online è **https://bartabacchi59.netlify.app**.
+
 ## Com'è fatto
 
 Statico puro: `index.html`, `menu.html`, `assets/stile.css`, niente build e
@@ -71,8 +77,13 @@ Da lì il proprietario cambia **le foto**, **le locandine delle offerte**,
 giorno per giorno e **le scritte**, cioè i paragrafi marcati e le due
 descrizioni per Google.
 
-**Non c'è un database e non c'è un login.** Lo store sono i file del sito:
-ogni pezzo modificabile sta fra due commenti e si riscrive solo quello.
+**Non c'è un database.** Lo store sono i file del sito: ogni pezzo
+modificabile sta fra due commenti e si riscrive solo quello. **Dal 23 settembre
+2026 la pagina pubblica da sola** («le modifiche devono andare direttamente
+online», Nicola, bocciando la versione che scriveva sul disco o dava i file da
+scaricare): legge i file dal repo e ci rimanda quelli nuovi attraverso
+`netlify/functions/pubblica.mjs`, che fa un commit; Netlify lo vede e rimette
+online il sito in un minuto circa.
 
 | Marcatore | Cosa contiene | Cosa si può fare |
 |---|---|---|
@@ -92,13 +103,44 @@ completo non torna identico e `prova-admin` lo dice.
 La forma di una voce di listino è fissa e il codice ci conta:
 `<li[ class="casa"]><div><b>Nome</b>[<small>descrizione</small>]</div><em>prezzo</em></li>`.
 
-- La pagina **non è un'area riservata** perché da lì non si scrive sul server:
-  si scrive solo sul disco di chi la apre. Due strade, decide il browser e non
-  l'utente: con la File System Access API (Chrome/Edge da computer) scrive da sé
-  nella cartella del sito; senza (Safari, iPhone) consegna gli stessi file da
-  scaricare. In tutti e due i casi **va online solo con un commit**.
-- `showDirectoryPicker` va chiamato **per primo** dentro il gestore del click,
-  prima di qualunque `await`: dopo, l'attivazione utente è scaduta.
+### Come pubblica (`netlify/functions/pubblica.mjs`, `/api/pubblica`)
+
+- **GET** dà le due pagine come stanno nel repo e il commit da cui partono;
+  **POST** riceve le pagine nuove e le foto e fa **un commit solo** (Git Data
+  API: blob, albero, commit, ref). Si legge dal repo e **mai dal sito**: Netlify
+  rielabora l'HTML che serve — i link a `menu.html` diventano `/menu`, ci
+  inietta un commento e uno script suo — e riscrivere quella versione
+  sporcherebbe il repo a ogni salvataggio.
+- **Tre impostazioni su Netlify**, messe da Nicola e mai nel repo:
+  `ADMIN_PASSWORD` (almeno 12 caratteri), `GITHUB_TOKEN` (fine-grained, solo
+  questo repo, «Contents: read and write»), `GITHUB_REPO` (`owner/nome` del repo
+  collegato a Netlify; se Netlify espone `REPOSITORY_URL` la funzione usa
+  quello). Ne manca una o la parola è corta: risponde 503 e non pubblica
+  niente. **Si fallisce chiusi.** Cambiate le impostazioni serve un nuovo deploy.
+- **La parola d'ordine è un permesso limitato**: fuori dai pezzi marcati (e dalle
+  due `meta`, descrizione e versione) la pagina deve restare **identica al
+  byte**, e dentro non può comparire codice (`<script`, `on…=`, `javascript:`,
+  `iframe`…) che prima non c'era. Pagine ammesse: solo `index.html` e
+  `menu.html`; foto: solo `assets/img/<slug>-<13 cifre>.jpg`, jpeg veri, massimo
+  12 per volta e 1,5 MB l'una. Tutto il resto: 400, 413 o 422, e nessun commit.
+- **Nessuno scrive sopra al lavoro di un altro**: la pagina manda il commit da
+  cui è partita; se nel frattempo il ramo si è mosso (Nicola ha pushato, un'altra
+  scheda ha pubblicato) risponde 409 e il proprietario ricarica. Il ref si
+  aggiorna con `force: false`, seconda linea di difesa se il ramo si muove
+  proprio durante la pubblicazione.
+- La parola d'ordine sta in `sessionStorage`, non in `localStorage`: vale finché
+  la scheda è aperta e nessun'altra scheda dello stesso sito la legge —
+  `index.html` carica GSAP da un CDN, cioè codice di altri sulla stessa origine.
+- **«È online» è misurato, non promesso**: a ogni pubblicazione la pagina
+  riscrive `<meta name="versione">` in `index.html` e guarda il sito vero ogni
+  4 secondi finché non la porta. Dopo tre minuti dice che non si è ancora
+  aggiornato, invece di dire «fatto».
+- **`prova-pubblica.mjs`** è il controllo della funzione: `node
+  prova-pubblica.mjs` dalla radice, GitHub finto in memoria, 30 asserzioni —
+  parola sbagliata, impostazioni mancanti, conflitti, scritture fuori dai pezzi
+  marcati, script, foto sbagliate. Si rilancia ogni volta che si tocca la
+  funzione. Provata anche contro sé stessa: togliendo ciascun controllo, la
+  prova lo nota.
 - **Scappamento doppio**: nel testo l'apice dritto resta com'è (`'nduja`,
   `d'oliva` stanno nel menù), negli attributi si chiude. Senza questa
   distinzione ogni salvataggio riscriveva quarantaquattro righe di pizze
@@ -115,11 +157,12 @@ riscrittura delle regioni, fra cui il giro completo che deve lasciare i file
 
 ## ⚠️ Cose aperte
 
-1. **La cartella del picker non è mai stata provata davvero.** Serve un gesto e
-   un permesso veri; nel pannello del browser parte sempre il ramo dei download.
-   Va provato a mano su Chrome da computer prima di dirlo al proprietario.
-2. **Safari su iPhone mai provato**: orientamento EXIF delle foto e i download
-   di fila.
+1. **La pubblicazione vera non è ancora stata fatta**: la funzione è provata
+   con GitHub finto, e il corpo che produce il browser è passato dalla funzione
+   vera con esito 200 — ma finché su Netlify non ci sono le tre impostazioni
+   risponde 503. Il primo giro vero va fatto da Nicola, con un prezzo di prova.
+2. **Safari su iPhone mai provato**: orientamento EXIF delle foto e la
+   codifica jpeg del canvas.
 3. **La locandina degli orari si cambia dalla sezione «Gli orari»**, non fra
    le foto, con l'avviso che se cambiano le ore deve cambiare anche lei. Il
    rischio resta: chi cambia gli orari e non la foto, o non rilegge la frase di
