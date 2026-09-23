@@ -1,0 +1,8 @@
+{
+  "name": "bartabacchi59",
+  "private": true,
+  "description": "Sito statico del Bar Tabacchi 59: l'unica dipendenza serve alle funzioni Netlify (archivio delle modifiche)",
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  }
+}

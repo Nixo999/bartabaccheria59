@@ -14,11 +14,13 @@ che ha due `pushurl` su `origin` e con un `git push` scrive su tutti e due.
 Il secondo si allinea con `git pull` e basta. È già successo una volta che le
 copie divergessero: se `git log` dei due non coincide, il primo comanda.
 
-⚠️ **Dal 23 settembre 2026 nel repo scrive anche il proprietario**, dalla pagina
-di modifica, con commit «Dalla pagina di modifica: …». Quei commit vanno solo
-sul repo collegato a Netlify (`GITHUB_REPO`), non sull'altro. Quindi: **prima di
-lavorare in locale, `git pull`**; il push successivo dal Mac riallinea anche il
-secondo repo. Il sito online è **https://bartabacchi59.netlify.app**.
+Il sito online è **https://bartabacchi59.netlify.app**, collegato a GitHub: ogni
+push si vede in una decina di secondi.
+
+⚠️ **Le modifiche del proprietario non stanno nel repo**: stanno nell'archivio di
+Netlify (Blobs) e le rimette nella pagina una edge function a ogni visita (vedi
+«Come pubblica»). Il repo resta la struttura; il contenuto dei pezzi che il
+proprietario ha toccato sul sito è il suo, anche se nel repo è diverso.
 
 ## Com'è fatto
 
@@ -81,9 +83,9 @@ descrizioni per Google.
 modificabile sta fra due commenti e si riscrive solo quello. **Dal 23 settembre
 2026 la pagina pubblica da sola** («le modifiche devono andare direttamente
 online», Nicola, bocciando la versione che scriveva sul disco o dava i file da
-scaricare): legge i file dal repo e ci rimanda quelli nuovi attraverso
-`netlify/functions/pubblica.mjs`, che fa un commit; Netlify lo vede e rimette
-online il sito in un minuto circa.
+scaricare) e, dopo un giro col commit su GitHub bocciato lo stesso giorno,
+senza chiavi: i pezzi cambiati vanno nell'archivio di Netlify e sono online
+subito. Il dettaglio sta in «Come pubblica», qui sotto.
 
 | Marcatore | Cosa contiene | Cosa si può fare |
 |---|---|---|
@@ -103,72 +105,58 @@ completo non torna identico e `prova-admin` lo dice.
 La forma di una voce di listino è fissa e il codice ci conta:
 `<li[ class="casa"]><div><b>Nome</b>[<small>descrizione</small>]</div><em>prezzo</em></li>`.
 
-### Come pubblica (`netlify/functions/pubblica.mjs`, `/api/pubblica`)
+### Come pubblica — Netlify Blobs, senza chiavi (dal 23 settembre 2026)
 
-- **GET** dà le due pagine come stanno nel repo e il commit da cui partono;
-  **POST** riceve le pagine nuove e le foto e fa **un commit solo** (Git Data
-  API: blob, albero, commit, ref). Si legge dal repo e **mai dal sito**: Netlify
-  rielabora l'HTML che serve — i link a `menu.html` diventano `/menu`, ci
-  inietta un commento e uno script suo — e riscrivere quella versione
-  sporcherebbe il repo a ogni salvataggio.
-- **Tre impostazioni su Netlify**, messe da Nicola e mai nel repo:
-  `ADMIN_PASSWORD`, `GITHUB_TOKEN` (fine-grained, solo
-  questo repo, «Contents: read and write»), `GITHUB_REPO` (`owner/nome` del repo
-  collegato a Netlify; se Netlify espone `REPOSITORY_URL` la funzione usa
-  quello). Ne manca una: risponde 503 e non pubblica
-  niente. **Si fallisce chiusi.** Cambiate le impostazioni serve un nuovo deploy.
-- **La parola d'ordine è un permesso limitato**: fuori dai pezzi marcati (e dalle
-  due `meta`, descrizione e versione) la pagina deve restare **identica al
-  byte**, e dentro non può comparire codice (`<script`, `on…=`, `javascript:`,
-  `iframe`…) che prima non c'era. Pagine ammesse: solo `index.html` e
-  `menu.html`; foto: solo `assets/img/<slug>-<13 cifre>.jpg`, jpeg veri, massimo
-  12 per volta e 1,5 MB l'una. Tutto il resto: 400, 413 o 422, e nessun commit.
-- **Nessuno scrive sopra al lavoro di un altro**: la pagina manda il commit da
-  cui è partita; se nel frattempo il ramo si è mosso (Nicola ha pushato, un'altra
-  scheda ha pubblicato) risponde 409 e il proprietario ricarica. Il ref si
-  aggiorna con `force: false`, seconda linea di difesa se il ramo si muove
-  proprio durante la pubblicazione.
-- La parola d'ordine sta in `sessionStorage`, non in `localStorage`: vale finché
-  la scheda è aperta e nessun'altra scheda dello stesso sito la legge —
-  `index.html` carica GSAP da un CDN, cioè codice di altri sulla stessa origine.
-- **«È online» è misurato, non promesso**: a ogni pubblicazione la pagina
-  riscrive `<meta name="versione">` in `index.html` e guarda il sito vero ogni
-  4 secondi finché non la porta. Dopo tre minuti dice che non si è ancora
-  aggiornato, invece di dire «fatto».
-- **`prova-pubblica.mjs`** è il controllo della funzione: `node
-  prova-pubblica.mjs` dalla radice, GitHub finto in memoria, 30 asserzioni —
-  parola sbagliata, impostazioni mancanti, conflitti, scritture fuori dai pezzi
-  marcati, script, foto sbagliate. Si rilancia ogni volta che si tocca la
-  funzione. Provata anche contro sé stessa: togliendo ciascun controllo, la
-  prova lo nota.
-- **Scappamento doppio**: nel testo l'apice dritto resta com'è (`'nduja`,
-  `d'oliva` stanno nel menù), negli attributi si chiude. Senza questa
-  distinzione ogni salvataggio riscriveva quarantaquattro righe di pizze
-  per niente, e il diff diventava illeggibile.
-- Le foto si rimpiccioliscono in canvas prima di essere scritte: lato lungo
-  1100px, **jpeg** 0.8 — non webp, che su Safari il canvas non codifica in modo
-  affidabile. Nome `<slug>-<timestamp>.jpg`: mai due volte lo stesso, perché
-  `assets/img/*` è servito `immutable`.
+«Non voglio passare per Netlify» (Nicola): la strada col commit su GitHub
+chiedeva una chiave da creare e incollare su Netlify, ed è stata bocciata.
+Adesso non c'è **niente da configurare**: Netlify dà l'archivio (Blobs) alle sue
+funzioni da solo.
 
-**`prova-admin.html`** è il controllo: 42 asserzioni sulla lettura e la
-riscrittura delle regioni, fra cui il giro completo che deve lasciare i file
-**identici al byte**. Si apre da `http://`, non con un doppio clic. Se si tocca
-`admin.js`, si riapre quella pagina prima di committare.
+- **`netlify/functions/pubblica.mjs`** (`/api/pubblica`): `GET` con la parola
+  d'ordine dà la versione pubblicata; `POST {azione:'pubblica', base, pagine,
+  foto}` salva **solo i pezzi marcati cambiati** (`pagine['menu.html'].regioni
+  ['menu pizze']`), la descrizione se è cambiata, e le foto nuove come
+  `foto/<slug>-<13 cifre>.jpg`; `POST {azione:'parola', nuova}` cambia la parola.
+- **`netlify/edge-functions/pagine.mjs`** su `/`, `/index.html`, `/menu`,
+  `/menu.html`: prende la pagina del repo così come Netlify la serve e ci mette
+  dentro i pezzi dell'archivio; su `/foto/*` serve le foto dell'archivio.
+  **Qualunque errore, si serve la pagina del repo com'è**: una modifica che non
+  arriva è meglio di una home che non si apre. Online vuol dire subito, senza
+  deploy: la pagina di modifica guarda il sito finché non porta la versione
+  nuova in `<meta name="versione">`.
+- La pagina di modifica **legge le pagine dal sito**, non dal repo: sono quelle
+  con dentro le modifiche già fatte. Netlify ci rielabora un paio di link e ci
+  inietta uno script, ma fuori dai pezzi marcati, e alla funzione arrivano solo
+  i pezzi.
+- **La parola d'ordine**: all'inizio è `PAROLA_INIZIALE` nel codice (scelta di
+  Nicola, provvisoria). Si cambia dalla pagina di modifica, sezione «La parola
+  d'ordine»: la nuova si salva come impronta scrypt, mai in chiaro, e da lì
+  quella iniziale non vale più. Persa la nuova: si cambia `AZZERA_PAROLA` nel
+  codice e si pubblica, e torna valida quella iniziale.
+- **La parola d'ordine è un permesso limitato**: nei pezzi non passano
+  `<script`, `on…=`, `javascript:`, `iframe`/`object`/`embed`, né `<!--` (un
+  pezzo non deve poter chiudere il suo marcatore); si scrivono solo i sei tipi
+  di pezzo e le due pagine; foto solo jpeg veri, massimo 12 per volta e 1,5 MB
+  l'una; la descrizione senza virgolette né tag. Se la versione è cambiata dopo
+  la lettura risponde 409: non si scrive sopra al lavoro di un altro.
+- **`prova-pubblica.mjs`**: `npm install`, poi `node prova-pubblica.mjs`. Usa
+  `BlobsServer`, l'archivio che Netlify usa in locale, quindi il protocollo è
+  quello vero; funzione, edge function e pagine sono quelle vere. 43
+  asserzioni, e togliendo a turno ogni protezione la prova lo nota. Si
+  rilancia ogni volta che si toccano le due funzioni.
 
 ## ⚠️ Cose aperte
 
-0. **La parola d'ordine è provvisoria e debole**, per scelta di Nicola il 23
-   settembre 2026: «per adesso [...] e poi la cambiamo quando daremo davvero
-   tutto in mano al cliente». Il valore non sta qui (il repo è pubblico): sta
-   in `ADMIN_PASSWORD` su Netlify. **Prima di dare la pagina al proprietario si
-   cambia lì, poi un nuovo deploy.** Finché resta così, chi indovina la parola
-   può cambiare testi, prezzi e foto del sito — non script né altre parti: i
-   controlli della funzione restano quelli.
-
-1. **La pubblicazione vera non è ancora stata fatta**: la funzione è provata
-   con GitHub finto, e il corpo che produce il browser è passato dalla funzione
-   vera con esito 200 — ma finché su Netlify non ci sono le tre impostazioni
-   risponde 503. Il primo giro vero va fatto da Nicola, con un prezzo di prova.
+0. **La parola d'ordine iniziale è debole e sta nel codice pubblico**
+   (`PAROLA_INIZIALE`), per scelta di Nicola il 23 settembre 2026: «per adesso
+   [...] e poi la cambiamo quando daremo davvero tutto in mano al cliente».
+   Chiunque legge il repo la conosce. **Prima di dare la pagina al proprietario
+   la si cambia dalla pagina stessa.** Finché resta così, chi la usa può
+   cambiare testi, prezzi e foto — non script né altre parti.
+1. **La pubblicazione vera sul sito online non è ancora stata fatta**: provata
+   con `BlobsServer` e con il corpo prodotto dal browser passato dalla funzione e
+   dalla edge function vere. Il primo giro vero lo fa Nicola entrando con la
+   parola iniziale.
 2. **Safari su iPhone mai provato**: orientamento EXIF delle foto e la
    codifica jpeg del canvas.
 3. **La locandina degli orari si cambia dalla sezione «Gli orari»**, non fra

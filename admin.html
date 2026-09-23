@@ -29,15 +29,15 @@
   <div class="admin-testa">
     <div>
       <h1>Modifica il sito</h1>
-      <p class="admin-sub">Le foto, le offerte, il menù con i prezzi, gli orari e le scritte. Si cambia qui e si pubblica: il sito si aggiorna da solo in un minuto circa.</p>
+      <p class="admin-sub">Le foto, le offerte, il menù con i prezzi, gli orari e le scritte. Si cambia qui e si pubblica: il sito si aggiorna subito.</p>
     </div>
     <button class="btn btn-pieno" id="salva" type="button" disabled hidden>Pubblica</button>
   </div>
 
   <p class="admin-esito" id="esito" hidden></p>
 
-  <!-- La parola d'ordine la mette su Netlify Nicola (ADMIN_PASSWORD): qui si
-       digita e resta valida finche' la scheda e' aperta. -->
+  <!-- La parola d'ordine si digita qui e resta valida finche' la scheda e'
+       aperta. Si cambia dalla sezione «La parola d'ordine», in fondo. -->
   <form class="admin-entra" id="entra" hidden>
     <label for="parola">Parola d’ordine</label>
     <input id="parola" type="password" autocomplete="current-password" required>
@@ -128,6 +128,18 @@
       si mettono due asterischi prima e dopo, <b>**così**</b>; per andare a capo
       si va a capo.</p>
     <div id="scritte" class="admin-elenco"></div>
+  </section>
+
+  <!-- ─────────── PAROLA D'ORDINE ─────────── -->
+  <section class="admin-blocco">
+    <h2>La parola d’ordine</h2>
+    <p class="admin-sub">Quella con cui si entra in questa pagina. Cambiandola,
+      quella di prima non vale più: da qui in poi si entra solo con la nuova.</p>
+    <form class="admin-entra" id="form-parola">
+      <label for="parola-nuova">Parola d’ordine nuova</label>
+      <input id="parola-nuova" type="text" autocomplete="new-password" required>
+      <button class="btn btn-vuoto" type="submit">Cambia la parola d’ordine</button>
+    </form>
   </section>
 
   <p class="admin-sub admin-piede">

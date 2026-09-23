@@ -5,12 +5,14 @@
 // <!-- @menu pizze --> … <!-- /@menu --> — e si riscrive solo quello che c'e'
 // dentro: il resto del file non lo tocca nessuno, e il diff resta leggibile.
 //
-// Dal 23 settembre 2026 la pagina pubblica da sola: legge i file dal repo e
-// ci rimanda quelli nuovi attraverso netlify/functions/pubblica.mjs, che fa un
-// commit; Netlify vede il commit e rimette online il sito in un minuto circa.
-// Per questo adesso c'e' una parola d'ordine: prima non serviva perche' la
-// pagina scriveva solo sul disco di chi la apriva. «Deve andare direttamente
-// online» (Nicola): il disco e i download sono stati tolti.
+// Dal 23 settembre 2026 la pagina pubblica da sola, e subito: manda i pezzi
+// cambiati e le foto nuove a netlify/functions/pubblica.mjs, che li salva
+// nell'archivio di Netlify (Blobs); la edge function netlify/edge-functions/
+// pagine.mjs li rimette nella pagina a ogni visita. Niente chiavi da impostare
+// e niente deploy. «Deve andare direttamente online» e «non voglio passare per
+// Netlify» (Nicola): via il disco, via i download, via il commit su GitHub.
+// Le pagine si leggono dal sito, cosi' come sono online adesso: sono quelle
+// con dentro le modifiche gia' fatte.
 
 const esito = document.getElementById('esito');
 const bottoneSalva = document.getElementById('salva');
@@ -18,7 +20,7 @@ const API = '/api/pubblica';
 
 // ── Lo stato: il testo dei due file piu' il modello di quello che si modifica ──
 const stato = {
-  base: '',         // il commit da cui sono stati letti i file: la funzione rifiuta se nel frattempo e' cambiato
+  base: null,       // la versione pubblicata quando sono state lette le pagine: la funzione rifiuta se nel frattempo e' cambiata
   testo: {},        // 'index.html' → il testo come e' stato letto
   scatti: [],       // {file, regione, i, src, alt, w, h, nuova:File|null}
   locandine: [],    // {src, alt, w, h, titolo, testo, prezzo, nuova:File|null}
@@ -167,9 +169,28 @@ function leggiOrari(testo) {
 // La descrizione per Google e' un attributo, e in un attributo un commento
 // HTML non ci sta: la si trova con la sua espressione.
 const DESCRIZIONE = /(<meta name="description" content=")([^"]*)(")/;
-// La versione cambia a ogni pubblicazione: e' il segno che la pagina cerca sul
-// sito online per dire «e' online» invece di «forse».
-const VERSIONE = /(<meta name="versione" content=")([^"]*)(")/;
+// Quello che la pagina manda alla funzione: solo i pezzi marcati che sono
+// cambiati rispetto a come li ha letti, e la descrizione se e' cambiata. Il
+// resto della pagina resta quello del repo.
+const TUTTE_LE_REGIONI = /<!--\s*@([a-z]+)\s+([a-z0-9-]+)\s*-->([\s\S]*?)<!--\s*\/@\1\s*-->/g;
+
+function cambiamenti(prima, dopo) {
+  const pagine = {};
+  for (const f of Object.keys(dopo)) {
+    const vecchie = {};
+    for (const m of prima[f].matchAll(TUTTE_LE_REGIONI)) vecchie[m[1] + ' ' + m[2]] = m[3];
+    const regioni = {};
+    for (const m of dopo[f].matchAll(TUTTE_LE_REGIONI)) {
+      if (vecchie[m[1] + ' ' + m[2]] !== m[3]) regioni[m[1] + ' ' + m[2]] = m[3];
+    }
+    const p = {};
+    if (Object.keys(regioni).length) p.regioni = regioni;
+    const d0 = prima[f].match(DESCRIZIONE)?.[2], d1 = dopo[f].match(DESCRIZIONE)?.[2];
+    if (d1 !== undefined && d1 !== d0) p.descrizione = d1;
+    if (Object.keys(p).length) pagine[f] = p;
+  }
+  return pagine;
+}
 
 function leggiScritte(testo, file) {
   const scritte = nomiRegioni(testo, 'scritta').map((nome) => ({
@@ -333,9 +354,9 @@ const base64 = (blob) => new Promise((ok, ko) => {
 
 const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Dopo il commit Netlify ci mette un minuto circa. Si guarda il sito vero
-// finche' non porta la versione appena scritta: tre minuti, poi si dice la
-// verita' invece di «fatto».
+// La edge function mette le modifiche nella pagina dalla visita dopo. Si
+// guarda il sito vero finche' non porta la versione appena scritta: tre
+// minuti al massimo, poi si dice la verita' invece di «fatto».
 async function aspettaOnline(versione) {
   for (let i = 0; i < 45; i++) {
     await pausa(4000);
@@ -384,11 +405,10 @@ function scusa(err, ripiego) {
   switch (err.stato) {
     case 401: return 'Parola d’ordine sbagliata.';
     case 404: return 'Da questo indirizzo non si pubblica: apri la pagina dal sito online.';
-    case 409: return 'Il sito è stato cambiato da un’altra parte mentre lavoravi — da Nicola o da un’altra finestra. Ricarica la pagina: le modifiche di adesso vanno rifatte.';
+    case 409: return 'Il sito è stato cambiato da un’altra parte mentre lavoravi — da un’altra finestra o da un altro telefono. Ricarica la pagina: le modifiche di adesso vanno rifatte.';
     case 413: return 'Troppe foto insieme, o troppo grandi: pubblicane una parte, poi il resto.';
-    case 422: return 'Non pubblico: la modifica toccherebbe parti del sito che da qui non si cambiano. Scrivi a Nicola.';
-    case 502: return 'GitHub ha rifiutato la pubblicazione: la chiave del sito è scaduta o non ha i permessi. Scrivi a Nicola.';
-    case 503: return 'La pubblicazione non è ancora attiva: mancano le impostazioni su Netlify. Scrivi a Nicola.';
+    case 422: return 'Non pubblico: nel testo c’è del codice, e da qui si pubblicano solo testi, prezzi e foto.';
+    case 500: case 503: return 'L’archivio del sito non risponde. Riprova fra un minuto; se continua, scrivi a Nicola.';
   }
   return ripiego;
 }
@@ -649,7 +669,6 @@ formLocandina?.addEventListener('submit', (e) => {
 
 // ── Pubblica ────────────────────────────────────────────────────────────────
 
-const NOMI_PAGINE = { 'index.html': 'pagina principale', 'menu.html': 'menù' };
 let ultimaAttesa = 0;
 
 bottoneSalva?.addEventListener('click', async () => {
@@ -660,21 +679,21 @@ bottoneSalva?.addEventListener('click', async () => {
   try {
     const male = controllaOrari();
     if (male) { parla(male, true); return; }
-    const foto = [];              // {percorso, blob}: vanno nello stesso commit delle pagine
+    const foto = [];              // {percorso, blob}: vanno nell'archivio prima dei pezzi che le nominano
     let testi = Object.fromEntries(Object.entries(stato.testo));
 
     // 1. le foto nuove: si rimpiccioliscono e prendono un nome che non collide
     for (const s of stato.scatti) {
       if (!s.nuova) continue;
       const { blob, w, h } = await ridimensiona(s.nuova);
-      s.src = 'assets/img/' + slug(s.regione) + '-' + Date.now() + '.jpg';
+      s.src = 'foto/' + slug(s.regione) + '-' + Date.now() + '.jpg';
       s.w = w; s.h = h;
       foto.push({ percorso: s.src, blob });
     }
     for (const l of stato.locandine) {
       if (!l.nuova) continue;
       const { blob, w, h } = await ridimensiona(l.nuova);
-      l.src = 'assets/img/' + slug(l.titolo) + '-' + Date.now() + '.jpg';
+      l.src = 'foto/' + slug(l.titolo) + '-' + Date.now() + '.jpg';
       l.w = w; l.h = h;
       foto.push({ percorso: l.src, blob });
     }
@@ -701,37 +720,29 @@ bottoneSalva?.addEventListener('click', async () => {
     if (stato.orari) testi = riscriviOrari(testi, stato.orari);
     testi = riscriviScritte(testi, stato.scritte);
 
-    const cambiate = Object.keys(testi).filter((f) => testi[f] !== stato.testo[f]);
-    if (!cambiate.length && !foto.length) { parla('Non hai cambiato niente: non c\'è niente da pubblicare.'); return; }
-    const cosa = [...cambiate.map((f) => NOMI_PAGINE[f]), ...(foto.length ? [foto.length + ' foto'] : [])].join(', ');
-
-    // 4. la versione: sempre nella pagina principale, anche se e' cambiato solo il
-    //    menù — e' li' che si guarda per sapere se il sito si e' aggiornato
-    const versione = new Date().toISOString();
-    if (!VERSIONE.test(testi['index.html'])) throw new Error('regione-sparita:versione');
-    testi['index.html'] = testi['index.html'].replace(VERSIONE, (_, a, __, z) => a + versione + z);
-    if (!cambiate.includes('index.html')) cambiate.push('index.html');
+    const pagine = cambiamenti(stato.testo, testi);
+    if (!Object.keys(pagine).length && !foto.length) { parla('Non hai cambiato niente: non c\'è niente da pubblicare.'); return; }
 
     const corpo = {
+      azione: 'pubblica',
       base: stato.base,
-      testi: Object.fromEntries(cambiate.map((f) => [f, testi[f]])),
+      pagine,
       foto: await Promise.all(foto.map(async (f) => ({ percorso: f.percorso, dati: await base64(f.blob) }))),
-      cosa,
     };
     // ponytail: una richiesta sola, e Netlify ne accetta 6 MB; con le foto gia'
     // rimpicciolite sono una decina. Oltre, si dice di pubblicare in due volte.
     if (JSON.stringify(corpo).length > 5_500_000) { const e = new Error('troppo'); e.stato = 413; throw e; }
 
     bottoneSalva.textContent = 'Pubblico…';
-    const { commit } = await chiama('POST', corpo);
+    const { versione } = await chiama('POST', corpo);
 
     // solo a pubblicazione riuscita: da qui in poi il punto di partenza e' questo
-    stato.base = commit;
+    stato.base = versione;
     Object.assign(stato.testo, testi);
     for (const s of stato.scatti) s.nuova = null;
     for (const l of stato.locandine) l.nuova = null;
 
-    parla('Pubblicato. Il sito si aggiorna da solo: un minuto circa, e qui ti dico quando è fatto.');
+    parla('Pubblicato. Controllo che si veda sul sito…');
     const mia = ++ultimaAttesa;
     aspettaOnline(versione).then((online) => {
       if (mia !== ultimaAttesa) return; // nel frattempo e' partita un'altra pubblicazione: parla lei
@@ -748,10 +759,10 @@ bottoneSalva?.addEventListener('click', async () => {
   }
 });
 
-// ── Avvio: prima la parola d'ordine, poi i file dal repo ────────────────────
-// Si legge dal repo attraverso la funzione, non dal sito: Netlify rielabora
-// l'HTML che serve (i link a menu.html diventano /menu, e ci inietta uno script
-// suo), e riscrivere quella versione sporcherebbe il repo a ogni salvataggio.
+// ── Avvio: prima la parola d'ordine, poi le pagine come sono online ─────────
+// Le pagine si leggono dal sito: Netlify ci rielabora un paio di link e ci
+// mette uno script suo, ma fuori dai pezzi marcati, e alla funzione arrivano
+// solo i pezzi marcati.
 
 const formEntra = document.getElementById('entra');
 const editor = document.getElementById('editor');
@@ -765,10 +776,16 @@ function esci() {
   document.getElementById('parola').value = '';
 }
 
+async function leggiPagina(f) {
+  const r = await fetch(f + '?v=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) { const e = new Error(f); e.stato = r.status; throw e; }
+  return r.text();
+}
+
 async function carica() {
-  const { base, files } = await chiama('GET');
-  stato.base = base;
-  stato.testo = { 'index.html': files['index.html'], 'menu.html': files['menu.html'] };
+  const { versione } = await chiama('GET'); // controlla anche la parola d'ordine
+  stato.base = versione;
+  stato.testo = { 'index.html': await leggiPagina('index.html'), 'menu.html': await leggiPagina('menu.html') };
   stato.scatti = leggiScatti(stato.testo['index.html'], 'index.html');
   stato.locandine = leggiLocandine(stato.testo['index.html']);
   stato.liste = [
@@ -797,6 +814,24 @@ function nonEntra(err) {
   else formEntra.hidden = false;
   parla(scusa(err, 'Non riesco a leggere il sito. Riprova fra un attimo.'), true);
 }
+
+// Cambiare la parola d'ordine: da quel momento quella di prima non vale piu'.
+// Si fa qui, non su Netlify: e' il giorno in cui la pagina passa al proprietario.
+document.getElementById('form-parola')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const campo = document.getElementById('parola-nuova');
+  const nuova = campo.value;
+  if (!nuova.trim()) { parla('Scrivi la parola d’ordine nuova.', true); return; }
+  try {
+    await chiama('POST', { azione: 'parola', nuova });
+    ricordaParola(nuova);
+    campo.value = '';
+    parla('Parola d’ordine cambiata: da adesso si entra solo con quella nuova.');
+  } catch (err) {
+    if (err.stato === 401) esci();
+    parla(scusa(err, 'La parola d’ordine non è cambiata. Riprova fra un attimo.'), true);
+  }
+});
 
 formEntra?.addEventListener('submit', async (e) => {
   e.preventDefault();

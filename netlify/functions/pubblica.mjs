@@ -1,174 +1,158 @@
 // ── Pubblica le modifiche fatte da admin.html ──
 //
-// La pagina di modifica non scrive sul disco di chi la apre: manda qui i testi
-// nuovi delle due pagine e le foto, e questa funzione li mette su GitHub in UN
-// commit solo. Netlify vede il commit e rimette online il sito da sé, in un
-// minuto circa. Il sito resta statico: niente database, niente JS che carica
-// il menù — la funzione cambia i file, non il modo in cui vengono serviti.
+// Le modifiche non vanno su GitHub: vanno in Netlify Blobs, l'archivio che
+// Netlify dà alle sue funzioni senza chiavi e senza impostazioni. «Non voglio
+// passare per Netlify» (Nicola, 23 settembre 2026): la strada col commit su
+// GitHub chiedeva una chiave da creare e da incollare su Netlify, ed è stata
+// bocciata. Qui non c'è niente da configurare.
 //
-// Si legge dal repo, mai dal sito: Netlify rielabora l'HTML che serve (riscrive
-// i link a menu.html in /menu e ci inietta uno script suo), e riscrivere quella
-// versione nel repo lo sporcherebbe a ogni salvataggio.
+// Cosa si salva: solo il contenuto dei pezzi marcati che il proprietario ha
+// cambiato (<!-- @menu pizze --> … <!-- /@menu -->), la descrizione per Google
+// e le foto nuove. La edge function netlify/edge-functions/pagine.mjs li rimette
+// nella pagina a ogni visita: la struttura resta quella del repo, il contenuto
+// modificato arriva dall'archivio. Online vuol dire subito, senza deploy.
 //
-// Tre impostazioni su Netlify (Site configuration → Environment variables),
-// messe da Nicola e mai scritte nel repo:
-//   ADMIN_PASSWORD  la parola d'ordine della pagina di modifica
-//   GITHUB_TOKEN    token fine-grained su questo repo solo, «Contents: read and write»
-//   GITHUB_REPO     il repo collegato a Netlify, nella forma owner/nome
-// Ne manca una: non si pubblica niente. Si fallisce chiusi.
-//
-// La lunghezza non si controlla piu': fino alla consegna al proprietario la
-// parola e' provvisoria e corta per scelta di Nicola (23 settembre 2026), e
-// si cambia su Netlify, non qui. Quanto e' debole non lo dice il codice: il
-// danno possibile lo limitano i controlli qui sotto, che non si toccano.
+// ⚠️ Il repo non vede le modifiche del proprietario: stanno nell'archivio. Un
+// pezzo che il proprietario ha cambiato, se Nicola lo cambia nel repo, sul sito
+// resta com'è nell'archivio.
 
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { getStore } from '@netlify/blobs';
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+
+// La parola d'ordine iniziale, scelta da Nicola il 23 settembre 2026: «per
+// adesso la password è admin, e poi la cambiamo quando daremo davvero tutto in
+// mano al cliente». Il repo è pubblico e lei con lui: si cambia dalla pagina di
+// modifica, sezione «Parola d'ordine», e da quel momento questa non vale più.
+// Se la parola nuova si perde, si cambia AZZERA_PAROLA e si pubblica: torna
+// valida questa.
+const PAROLA_INIZIALE = 'admin';
+const AZZERA_PAROLA = 1;
 
 const PAGINE = ['index.html', 'menu.html'];
-// il nome che admin.js dà alle foto nuove: <slug>-<timestamp>.jpg. Mai il nome
-// di una foto che c'è già: assets/img/* è servito immutable, e una foto
-// sovrascritta resterebbe vecchia nella cache di chi l'ha già vista.
-const FOTO = /^assets\/img\/[a-z0-9-]{1,60}-\d{13}\.jpg$/;
+const TIPI = ['scatto', 'galleria', 'menu', 'orari', 'scritta', 'conto'];
+const REGIONE = /^([a-z]+) ([a-z0-9-]{1,40})$/;
+// il nome che admin.js dà alle foto nuove: foto/<slug>-<timestamp>.jpg, mai uno
+// che c'è già — la edge function le serve come immutabili
+const FOTO = /^foto\/[a-z0-9-]{1,60}-\d{13}\.jpg$/;
 const MAX_FOTO = 12;
 const MAX_BYTE_FOTO = 1_500_000;
-const MAX_PAGINA = 300_000;
+const MAX_REGIONE = 100_000;
+// La parola d'ordine permette di cambiare un prezzo, non di mettere codice
+// davanti ai clienti del bar. `<!--` perché un contenuto non deve poter chiudere
+// il suo marcatore e mangiarsi il resto della pagina.
+const PERICOLI = [/<script\b/i, /<iframe\b/i, /<object\b/i, /<embed\b/i, /\son[a-z]+\s*=/i, /javascript:/i, /<!--/];
 
 const risposta = (stato, corpo) => new Response(JSON.stringify(corpo), {
   status: stato,
   headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
 });
 
-function impostazioni() {
-  const e = process.env;
-  const repo = e.GITHUB_REPO || (e.REPOSITORY_URL || '').replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '');
-  if (!e.ADMIN_PASSWORD) return null;
-  if (!e.GITHUB_TOKEN || !/^[\w.-]+\/[\w.-]+$/.test(repo)) return null;
-  return { parola: e.ADMIN_PASSWORD, token: e.GITHUB_TOKEN, repo, ramo: e.GITHUB_BRANCH || 'main' };
-}
+const archivio = () => getStore({ name: 'sito', consistency: 'strong' });
 
-// confronto a tempo costante: sulle impronte, che hanno sempre la stessa lunghezza
-const impronta = (s) => createHash('sha256').update(String(s)).digest();
-const stessaParola = (a, b) => timingSafeEqual(impronta(a), impronta(b));
+// ── La parola d'ordine ──
+// Quella cambiata dalla pagina si salva come impronta scrypt col suo sale, mai
+// in chiaro. Finché non c'è, vale la parola iniziale. Confronti a tempo costante.
+const impronta = (parola, sale) => scryptSync(String(parola), Buffer.from(sale, 'hex'), 32);
+const sha = (s) => createHash('sha256').update(String(s)).digest();
 
-async function github(cfg, metodo, percorso, corpo, grezzo) {
-  const r = await fetch('https://api.github.com/repos/' + cfg.repo + percorso, {
-    method: metodo,
-    headers: {
-      authorization: 'Bearer ' + cfg.token,
-      accept: grezzo ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
-      'x-github-api-version': '2022-11-28',
-      'user-agent': 'bartabacchi59-pubblica',
-      ...(corpo ? { 'content-type': 'application/json' } : {}),
-    },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  });
-  if (!r.ok) {
-    const e = new Error('github ' + metodo + ' ' + percorso + ': ' + r.status);
-    e.stato = r.status;
-    throw e;
+async function parolaGiusta(a, parola) {
+  if (!parola) return false;
+  const r = await a.get('parola', { type: 'json' });
+  if (r && r.azzera === AZZERA_PAROLA) {
+    return timingSafeEqual(impronta(parola, r.sale), Buffer.from(r.impronta, 'hex'));
   }
-  return grezzo ? r.text() : r.json();
+  return timingSafeEqual(sha(parola), sha(PAROLA_INIZIALE));
 }
 
-const testa = async (cfg) => (await github(cfg, 'GET', '/git/ref/heads/' + cfg.ramo)).object.sha;
-const pagina = (cfg, f, sha) => github(cfg, 'GET', '/contents/' + f + '?ref=' + sha, null, true);
+async function salvaParola(a, parola) {
+  const sale = randomBytes(16).toString('hex');
+  await a.setJSON('parola', { sale, impronta: impronta(parola, sale).toString('hex'), azzera: AZZERA_PAROLA });
+}
 
-// ── Il controllo che rende la parola d'ordine un permesso limitato ──
-// Fuori dai pezzi marcati la pagina deve restare identica al byte: da qui si
-// cambia solo quello che la pagina di modifica sa cambiare. E dentro non può
-// comparire codice: la parola d'ordine serve a cambiare un prezzo, non a
-// mettere uno script davanti ai clienti del bar.
-const SCHELETRO = [
-  [/(<!--\s*@([a-z]+)\s+[a-z0-9-]+\s*-->)[\s\S]*?(<!--\s*\/@\2\s*-->)/g, '$1$3'],
-  [/(<meta name="(?:description|versione)" content=")[^"]*(")/g, '$1$2'],
-];
-const PERICOLI = [/<script\b/gi, /<iframe\b/gi, /<object\b/gi, /<embed\b/gi, /\son[a-z]+\s*=/gi, /javascript:/gi];
-const scheletro = (t) => SCHELETRO.reduce((s, [re, sost]) => s.replace(re, sost), t);
-const conta = (t, re) => (t.match(re) || []).length;
-
-function controlla(prima, dopo) {
-  if (scheletro(prima) !== scheletro(dopo)) return 'cambia fuori dai pezzi modificabili';
-  for (const re of PERICOLI) if (conta(dopo, re) > conta(prima, re)) return 'contiene codice';
+// ── Il controllo di quello che arriva ──
+function controllaPagine(pagine) {
+  if (!pagine || typeof pagine !== 'object') return 'richiesta';
+  for (const [f, p] of Object.entries(pagine)) {
+    if (!PAGINE.includes(f) || !p || typeof p !== 'object') return 'richiesta';
+    const regioni = p.regioni || {};
+    if (typeof regioni !== 'object' || Object.keys(regioni).length > 100) return 'richiesta';
+    for (const [chiave, contenuto] of Object.entries(regioni)) {
+      const m = REGIONE.exec(chiave);
+      if (!m || !TIPI.includes(m[1]) || typeof contenuto !== 'string') return 'richiesta';
+      if (contenuto.length > MAX_REGIONE) return 'troppo-grande';
+      if (PERICOLI.some((re) => re.test(contenuto))) return 'codice';
+    }
+    // la descrizione finisce dentro un attributo: niente virgolette, niente tag
+    if (p.descrizione !== undefined && (typeof p.descrizione !== 'string' || p.descrizione.length > 500 || /["<>]/.test(p.descrizione))) return 'richiesta';
+  }
   return '';
 }
 
-// ── GET: le due pagine come stanno nel repo, e il commit da cui partono ──
-async function leggi(cfg) {
-  const base = await testa(cfg);
-  const files = {};
-  for (const f of PAGINE) files[f] = await pagina(cfg, f, base);
-  return risposta(200, { base, files });
-}
-
-// ── POST: un commit solo, testi e foto insieme ──
-async function pubblica(cfg, req) {
-  let corpo;
-  try { corpo = await req.json(); } catch { return risposta(400, { errore: 'richiesta' }); }
-  const { base, testi = {}, foto = [], cosa = '' } = corpo || {};
-  if (!/^[0-9a-f]{40}$/.test(String(base))) return risposta(400, { errore: 'richiesta' });
-  if (typeof testi !== 'object' || !Array.isArray(foto)) return risposta(400, { errore: 'richiesta' });
-
-  const nomi = Object.keys(testi);
-  for (const f of nomi) {
-    if (!PAGINE.includes(f) || typeof testi[f] !== 'string') return risposta(400, { errore: 'richiesta' });
-    if (testi[f].length > MAX_PAGINA) return risposta(413, { errore: 'troppo-grande' });
-  }
+async function pubblica(a, corpo) {
+  const { base = null, pagine = {}, foto = [] } = corpo;
+  const male = controllaPagine(pagine);
+  if (male === 'codice') return risposta(422, { errore: 'codice' });
+  if (male === 'troppo-grande') return risposta(413, { errore: 'troppo-grande' });
+  if (male) return risposta(400, { errore: male });
+  if (!Array.isArray(foto)) return risposta(400, { errore: 'richiesta' });
   if (foto.length > MAX_FOTO) return risposta(413, { errore: 'troppe-foto' });
+  const byteFoto = [];
   for (const f of foto) {
     if (!FOTO.test(String(f?.percorso)) || typeof f.dati !== 'string') return risposta(400, { errore: 'richiesta' });
     const byte = Buffer.from(f.dati, 'base64');
     if (byte.length > MAX_BYTE_FOTO) return risposta(413, { errore: 'troppo-grande' });
     if (byte[0] !== 0xff || byte[1] !== 0xd8 || byte[2] !== 0xff) return risposta(400, { errore: 'non-jpeg' });
+    byteFoto.push({ percorso: f.percorso, byte });
   }
-  if (!nomi.length && !foto.length) return risposta(400, { errore: 'vuota' });
+  if (!Object.keys(pagine).length && !byteFoto.length) return risposta(400, { errore: 'vuota' });
 
-  // Qualcuno ha pubblicato dopo che la pagina ha letto i file (Nicola dal Mac,
-  // un'altra scheda): si ferma tutto invece di scrivere sopra al suo lavoro.
-  if (await testa(cfg) !== base) return risposta(409, { errore: 'cambiato' });
+  const ora = (await a.get('regioni', { type: 'json' })) || { versione: null, pagine: {} };
+  // qualcuno ha pubblicato dopo che la pagina ha letto (un'altra scheda, un
+  // altro telefono): si ferma tutto invece di scrivere sopra al suo lavoro.
+  // ponytail: confronto e scrittura non sono atomici (questa versione di Blobs
+  // non ha scritture condizionate); con un proprietario solo basta.
+  if ((ora.versione ?? null) !== (base ?? null)) return risposta(409, { errore: 'cambiato' });
 
-  for (const f of nomi) {
-    const male = controlla(await pagina(cfg, f, base), testi[f]);
-    if (male) return risposta(422, { errore: 'fuori-regione', file: f, dettaglio: male });
+  // prima le foto, poi le pagine che le nominano
+  for (const f of byteFoto) await a.set(f.percorso, f.byte, { metadata: { tipo: 'image/jpeg' } });
+  for (const [f, p] of Object.entries(pagine)) {
+    const prima = ora.pagine[f] || { regioni: {} };
+    ora.pagine[f] = {
+      ...prima,
+      regioni: { ...prima.regioni, ...(p.regioni || {}) },
+      ...(p.descrizione !== undefined ? { descrizione: p.descrizione } : {}),
+    };
   }
-
-  const albero = (await github(cfg, 'GET', '/git/commits/' + base)).tree.sha;
-  const voci = [];
-  for (const f of nomi) {
-    const { sha } = await github(cfg, 'POST', '/git/blobs', { content: testi[f], encoding: 'utf-8' });
-    voci.push({ path: f, mode: '100644', type: 'blob', sha });
-  }
-  for (const f of foto) {
-    const { sha } = await github(cfg, 'POST', '/git/blobs', { content: f.dati, encoding: 'base64' });
-    voci.push({ path: f.percorso, mode: '100644', type: 'blob', sha });
-  }
-  const nuovoAlbero = (await github(cfg, 'POST', '/git/trees', { base_tree: albero, tree: voci })).sha;
-  const messaggio = 'Dalla pagina di modifica: ' + (String(cosa).replace(/\s+/g, ' ').trim().slice(0, 120) || 'aggiornamento');
-  const commit = (await github(cfg, 'POST', '/git/commits', { message: messaggio, tree: nuovoAlbero, parents: [base] })).sha;
-  try {
-    // force:false — se nel frattempo il ramo si è mosso, GitHub rifiuta con 422
-    await github(cfg, 'PATCH', '/git/refs/heads/' + cfg.ramo, { sha: commit, force: false });
-  } catch (e) {
-    if (e.stato === 422) return risposta(409, { errore: 'cambiato' });
-    throw e;
-  }
-  return risposta(200, { commit });
+  ora.versione = new Date().toISOString() + '-' + randomBytes(3).toString('hex');
+  await a.setJSON('regioni', ora);
+  return risposta(200, { versione: ora.versione });
 }
 
 export default async (req) => {
-  const cfg = impostazioni();
-  if (!cfg) return risposta(503, { errore: 'non-configurato' });
-  const data = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
-  if (!stessaParola(data, cfg.parola)) {
-    await new Promise((r) => setTimeout(r, 600)); // rallenta chi prova a indovinare
-    return risposta(401, { errore: 'parola' });
-  }
+  let a;
+  try { a = archivio(); } catch { return risposta(503, { errore: 'archivio' }); }
   try {
-    if (req.method === 'GET') return await leggi(cfg);
-    if (req.method === 'POST') return await pubblica(cfg, req);
-    return risposta(405, { errore: 'metodo' });
-  } catch (e) {
-    // 401/403 da GitHub: la chiave è scaduta o non ha i permessi — non la parola del proprietario
-    if (e.stato) return risposta(502, { errore: 'github', stato: e.stato });
+    const data = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!(await parolaGiusta(a, data))) {
+      await new Promise((r) => setTimeout(r, 600)); // rallenta chi prova a indovinare
+      return risposta(401, { errore: 'parola' });
+    }
+    if (req.method === 'GET') {
+      const ora = await a.get('regioni', { type: 'json' });
+      return risposta(200, { versione: ora?.versione ?? null });
+    }
+    if (req.method !== 'POST') return risposta(405, { errore: 'metodo' });
+    let corpo;
+    try { corpo = await req.json(); } catch { return risposta(400, { errore: 'richiesta' }); }
+    if (corpo?.azione === 'pubblica') return await pubblica(a, corpo);
+    if (corpo?.azione === 'parola') {
+      const nuova = String(corpo.nuova ?? '');
+      if (!nuova.trim() || nuova.length > 200) return risposta(400, { errore: 'parola-vuota' });
+      await salvaParola(a, nuova);
+      return risposta(200, { ok: true });
+    }
+    return risposta(400, { errore: 'richiesta' });
+  } catch {
     return risposta(500, { errore: 'interno' });
   }
 };

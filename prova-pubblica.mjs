@@ -1,63 +1,53 @@
-// Prova della funzione che pubblica: `node prova-pubblica.mjs` dalla radice.
-// GitHub è finto e sta in memoria; la funzione, le pagine e i controlli sono
-// quelli veri. È la parte che, sbagliata, mette online un sito rotto o dà la
-// parola d'ordine a chi non ce l'ha: si riprova ogni volta che si tocca
-// netlify/functions/pubblica.mjs.
+// Prova della pubblicazione: `node prova-pubblica.mjs` dalla radice (dopo `npm install`).
+// L'archivio è BlobsServer, quello che Netlify usa in locale: il protocollo è
+// quello vero, non un finto scritto a mano. La funzione, la edge function e le
+// pagine del sito sono quelle vere. È la parte che, sbagliata, rompe la home
+// o dà la pagina di modifica a chi non ha la parola: si riprova ogni volta che
+// si tocca netlify/functions/pubblica.mjs o netlify/edge-functions/pagine.mjs.
 
-import { readFileSync } from 'node:fs';
-import gestore from './netlify/functions/pubblica.mjs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { BlobsServer } from '@netlify/blobs/server';
+import { getStore } from '@netlify/blobs';
 
-const PAGINE = { 'index.html': readFileSync('index.html', 'utf8'), 'menu.html': readFileSync('menu.html', 'utf8') };
-const BASE = 'a'.repeat(40);
-const NUOVO = 'b'.repeat(40);
-const TOKEN = 'token-finto';
-const PAROLA = 'fiftynine-prova-1234';
+const cartella = mkdtempSync(join(tmpdir(), 'blobs-prova-'));
+const server = new BlobsServer({ directory: cartella, token: 'prova' });
+const { port } = await server.start();
+const contesto = (p) => Buffer.from(JSON.stringify({
+  edgeURL: 'http://localhost:' + p, uncachedEdgeURL: 'http://localhost:' + p, siteID: 'bartabacchi59-prova', token: 'prova',
+})).toString('base64');
+process.env.NETLIFY_BLOBS_CONTEXT = contesto(port);
 
-// ── GitHub finto ──
-let gh;
-function azzera() {
-  gh = { testa: BASE, blob: [], alberi: [], commit: [], siMuove: false, chiamate: 0 };
+const gestore = (await import('./netlify/functions/pubblica.mjs')).default;
+const { default: bordo } = await import('./netlify/edge-functions/pagine.mjs');
+const archivio = () => getStore({ name: 'sito', consistency: 'strong' });
+
+const INDEX = readFileSync('index.html', 'utf8');
+const MENU = readFileSync('menu.html', 'utf8');
+const regione = (t, tipo, nome) => t.match(new RegExp('<!--\\s*@' + tipo + '\\s+' + nome + '\\s*-->([\\s\\S]*?)<!--\\s*/@' + tipo + '\\s*-->'))[1];
+const PIZZE = regione(MENU, 'menu', 'pizze');
+const PIZZE_NUOVE = PIZZE.replace('</small></div><em>12,00</em>', '</small></div><em>12,50</em>');
+const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 16, 74, 70, 73, 70, 1, 2, 3]);
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0]);
+const FOTO = 'foto/colazione-1790171475276.jpg';
+
+async function azzera() {
+  const a = archivio();
+  for (const k of ['regioni', 'parola', FOTO]) await a.delete(k);
 }
-const json = (stato, corpo) => new Response(JSON.stringify(corpo), { status: stato });
-
-globalThis.fetch = async (url, opz = {}) => {
-  gh.chiamate++;
-  const u = new URL(url);
-  const p = u.pathname.replace(/^\/repos\/Nixo999\/bartabaccheria59/, '');
-  if (opz.headers.authorization !== 'Bearer ' + TOKEN) return json(401, { message: 'Bad credentials' });
-  const corpo = opz.body ? JSON.parse(opz.body) : null;
-  const m = opz.method;
-  if (m === 'GET' && p === '/git/ref/heads/main') return json(200, { object: { sha: gh.testa } });
-  if (m === 'GET' && p.startsWith('/contents/')) {
-    const f = p.slice('/contents/'.length);
-    if (u.searchParams.get('ref') !== BASE || !PAGINE[f]) return json(404, {});
-    return new Response(PAGINE[f], { status: 200 });
-  }
-  if (m === 'GET' && p === '/git/commits/' + BASE) return json(200, { tree: { sha: 'albero-base' } });
-  if (m === 'POST' && p === '/git/blobs') { gh.blob.push(corpo); return json(201, { sha: 'blob' + gh.blob.length }); }
-  if (m === 'POST' && p === '/git/trees') { gh.alberi.push(corpo); return json(201, { sha: 'albero-nuovo' }); }
-  if (m === 'POST' && p === '/git/commits') { gh.commit.push(corpo); return json(201, { sha: NUOVO }); }
-  if (m === 'PATCH' && p === '/git/refs/heads/main') {
-    // fast-forward o niente, come GitHub con force:false
-    if (gh.siMuove || corpo.force !== false || gh.commit.at(-1)?.parents[0] !== gh.testa) return json(422, {});
-    gh.testa = corpo.sha;
-    return json(200, {});
-  }
-  return json(404, { message: 'non previsto: ' + m + ' ' + p });
-};
-
-// ── Chiamate alla funzione ──
-function ambiente(extra = {}) {
-  for (const k of ['ADMIN_PASSWORD', 'GITHUB_TOKEN', 'GITHUB_REPO', 'REPOSITORY_URL', 'GITHUB_BRANCH']) delete process.env[k];
-  Object.assign(process.env, { ADMIN_PASSWORD: PAROLA, GITHUB_TOKEN: TOKEN, GITHUB_REPO: 'Nixo999/bartabaccheria59' }, extra);
-}
-async function chiama(metodo, corpo, parola = PAROLA) {
+async function chiama(metodo, corpo, parola = 'admin') {
   const r = await gestore(new Request('https://bartabacchi59.netlify.app/api/pubblica', {
     method: metodo,
-    headers: { authorization: 'Bearer ' + parola, 'content-type': 'application/json' },
+    headers: { ...(parola ? { authorization: 'Bearer ' + parola } : {}), 'content-type': 'application/json' },
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   }));
   return { stato: r.status, dati: await r.json() };
+}
+const pubblica = (pagine, extra = {}) => chiama('POST', { azione: 'pubblica', base: null, pagine, foto: [], ...extra });
+async function visita(percorso, html, intestazioni = { 'content-type': 'text/html; charset=utf-8' }) {
+  const next = async () => new Response(html, { headers: { 'x-robots-tag': 'noindex, nofollow', etag: '"statico"', 'content-length': String(Buffer.byteLength(html ?? '')), ...intestazioni } });
+  return bordo(new Request('https://bartabacchi59.netlify.app' + percorso), { next });
 }
 
 let rotti = 0, fatti = 0;
@@ -67,96 +57,97 @@ function prova(nome, condizione, dettaglio = '') {
   else { rotti++; console.log('✗ ' + nome + (dettaglio ? ' — ' + dettaglio : '')); }
 }
 
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 16, 74, 70, 73, 70]).toString('base64');
-const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0]).toString('base64');
-const foto = (nome = 'offerta-nuova-1758620000000') => ({ percorso: 'assets/img/' + nome + '.jpg', dati: JPEG });
-const conPrezzo = PAGINE['menu.html'].replace('<b>Fiftynine</b><small>pomodoro, mozzarella, salame piccante, prosciutto cotto, wurstel e salsiccia</small></div><em>12,00</em>',
-  '<b>Fiftynine</b><small>pomodoro, mozzarella, salame piccante, prosciutto cotto, wurstel e salsiccia</small></div><em>12,50</em>');
+// 1. la parola d'ordine
+await azzera();
+prova('«admin» entra', (await chiama('GET')).stato === 200);
+prova('una parola sbagliata no', (await chiama('GET', undefined, 'sbagliata')).stato === 401);
+prova('senza parola no', (await chiama('GET', undefined, '')).stato === 401);
+prova('all’inizio non c’è niente di pubblicato', (await chiama('GET')).dati.versione === null);
 
-// 1. si fallisce chiusi
-azzera(); ambiente({ ADMIN_PASSWORD: '' });
-prova('senza parola d’ordine configurata non pubblica', (await chiama('GET')).stato === 503);
-azzera(); ambiente({ ADMIN_PASSWORD: 'prova' });
-// fino alla consegna la parola è provvisoria e corta: deve funzionare lo stesso
-prova('una parola d’ordine corta funziona', (await chiama('GET', undefined, 'prova')).stato === 200);
-prova('e quella sbagliata resta sbagliata', (await chiama('GET', undefined, 'prova2')).stato === 401);
-azzera(); ambiente({ GITHUB_TOKEN: '' });
-prova('senza la chiave di GitHub non pubblica', (await chiama('GET')).stato === 503);
-azzera(); ambiente({ GITHUB_REPO: '' });
-prova('senza sapere il repo non pubblica', (await chiama('GET')).stato === 503);
-azzera(); ambiente({ GITHUB_REPO: '', REPOSITORY_URL: 'https://github.com/Nixo999/bartabaccheria59' });
-prova('il repo lo prende anche da REPOSITORY_URL di Netlify', (await chiama('GET')).stato === 200);
+// 2. prima di qualunque modifica la home passa com'è, al byte
+let r = await visita('/', INDEX);
+prova('senza modifiche la home è identica a quella del repo', (await r.text()) === INDEX);
 
-// 2. la parola d'ordine
-azzera(); ambiente();
-let r = await chiama('GET', undefined, 'sbagliata-sbagliata');
-prova('parola sbagliata: 401, e GitHub non viene nemmeno chiamato', r.stato === 401 && gh.chiamate === 0, r.stato + ' / ' + gh.chiamate + ' chiamate');
+// 3. un prezzo e una foto
+r = await pubblica({ 'menu.html': { regioni: { 'menu pizze': PIZZE_NUOVE } } }, { foto: [{ percorso: FOTO, dati: JPEG.toString('base64') }] });
+prova('pubblica un prezzo e una foto', r.stato === 200 && typeof r.dati.versione === 'string', JSON.stringify(r));
+const v1 = r.dati.versione;
+let menu = await (await visita('/menu.html', MENU)).text();
+const FIFTYNINE = '<b>Fiftynine</b><small>pomodoro, mozzarella, salame piccante, prosciutto cotto, wurstel e salsiccia</small></div>';
+prova('il menù mostra il prezzo nuovo della Fiftynine', menu.includes(FIFTYNINE + '<em>12,50</em>') && !menu.includes(FIFTYNINE + '<em>12,00</em>'));
+prova('e solo quello: il resto del menù è quello del repo', menu === MENU.replace(PIZZE, PIZZE_NUOVE));
+prova('anche da /menu, senza .html', (await (await visita('/menu', MENU)).text()) === menu);
+r = await visita('/menu.html', MENU);
+prova('le intestazioni del sito restano (noindex), la vecchia etag no', r.headers.get('x-robots-tag') === 'noindex, nofollow' && !r.headers.get('etag') && !r.headers.get('content-length'));
+const home = await (await visita('/', INDEX)).text();
+prova('la home porta la versione nuova, per il «è online»', home.includes('<meta name="versione" content="' + v1 + '">'));
+prova('e fuori dalla versione è identica a quella del repo', home.replace(v1, '2026-09-23') === INDEX);
+r = await visita('/' + FOTO);
+prova('la foto nuova si vede', r.status === 200 && r.headers.get('content-type') === 'image/jpeg' && Buffer.from(await r.arrayBuffer()).equals(JPEG));
+prova('una foto che non c’è: 404', (await visita('/foto/niente-1790171475276.jpg')).status === 404);
+// le altre chiavi dell'archivio (la parola, le regioni) da /foto/ non escono:
+// le protegge il prefisso. E sotto foto/ esce solo quello che ha il nome di una foto.
+prova('fuori dalle foto non si legge l’archivio', (await visita('/foto/parola')).status === 404 && (await visita('/foto/regioni')).status === 404);
+await archivio().set('foto/appunti', 'non è una foto');
+prova('sotto foto/ esce solo quello che ha il nome di una foto', (await visita('/foto/appunti')).status === 404);
+await archivio().delete('foto/appunti');
 
-// 3. la lettura: i file del repo, non quelli del sito
-azzera(); ambiente();
-r = await chiama('GET');
-prova('legge le due pagine e il commit di partenza', r.stato === 200 && r.dati.base === BASE &&
-  r.dati.files['index.html'] === PAGINE['index.html'] && r.dati.files['menu.html'] === PAGINE['menu.html']);
+// 4. due pubblicazioni si sommano, e chi parte da una versione vecchia si ferma
+const CALZONI = regione(MENU, 'menu', 'calzoni');
+r = await pubblica({ 'menu.html': { regioni: { 'menu calzoni': CALZONI.replace('<em>8,50</em>', '<em>9,00</em>') } } }, { base: v1 });
+prova('una seconda pubblicazione passa', r.stato === 200, JSON.stringify(r));
+menu = await (await visita('/menu.html', MENU)).text();
+prova('e il prezzo di prima resta', menu.includes('<em>12,50</em>') && menu.includes('<b>Liscio</b><small>pomodoro, mozzarella e prosciutto cotto</small></div><em>9,00</em>'));
+r = await pubblica({ 'menu.html': { regioni: { 'menu pizze': PIZZE } } }, { base: v1 });
+prova('partire da una versione vecchia: 409, e niente cambia', r.stato === 409 && (await (await visita('/menu.html', MENU)).text()) === menu);
 
-// 4. il caso buono: un prezzo e una foto, in UN commit
-azzera(); ambiente();
-r = await chiama('POST', { base: BASE, testi: { 'menu.html': conPrezzo }, foto: [foto()], cosa: 'menù, 1 foto' });
-prova('pubblica un prezzo e una foto', r.stato === 200 && r.dati.commit === NUOVO, JSON.stringify(r));
-prova('un commit solo', gh.commit.length === 1);
-prova('il commit parte da quello letto', gh.commit[0]?.parents[0] === BASE);
-prova('nell’albero ci sono la pagina e la foto, e basta', gh.alberi[0]?.tree.map((v) => v.path).join() === 'menu.html,assets/img/offerta-nuova-1758620000000.jpg');
-prova('la foto va su come base64, la pagina come testo', gh.blob[0]?.encoding === 'utf-8' && gh.blob[1]?.encoding === 'base64');
-prova('il ramo si è spostato sul commit nuovo', gh.testa === NUOVO);
-prova('il messaggio dice da dove viene', gh.commit[0]?.message === 'Dalla pagina di modifica: menù, 1 foto');
+// 5. la parola d'ordine non dà il permesso di mettere codice o di uscire dai pezzi
+await azzera();
+const rifiuta = async (nome, pagine, stato, extra) => {
+  const x = await pubblica(pagine, extra);
+  prova(nome + ': ' + stato, x.stato === stato, JSON.stringify(x));
+};
+await rifiuta('uno script', { 'menu.html': { regioni: { 'menu pizze': PIZZE + '<script>alert(1)</script>' } } }, 422);
+await rifiuta('un onclick', { 'menu.html': { regioni: { 'menu pizze': PIZZE.replace('<em>', '<em onclick="x()">') } } }, 422);
+await rifiuta('un commento che chiude il marcatore', { 'menu.html': { regioni: { 'menu pizze': '<!-- /@menu --><h1>preso</h1>' } } }, 422);
+await rifiuta('un tipo di pezzo che non esiste', { 'menu.html': { regioni: { 'titolo tutto': 'x' } } }, 400);
+await rifiuta('un nome di pezzo con dentro altro', { 'menu.html': { regioni: { 'menu pizze -->': 'x' } } }, 400);
+await rifiuta('una pagina che non è delle due', { 'admin.html': { regioni: { 'menu pizze': 'x' } } }, 400);
+await rifiuta('una descrizione con le virgolette', { 'index.html': { descrizione: 'ciao" onload="x' } }, 400);
+await rifiuta('niente da pubblicare', {}, 400);
+await rifiuta('una foto fuori da foto/', {}, 400, { foto: [{ percorso: 'parola', dati: JPEG.toString('base64') }] });
+await rifiuta('una foto che non è un jpeg', {}, 400, { foto: [{ percorso: FOTO, dati: PNG.toString('base64') }] });
+await rifiuta('tredici foto insieme', {}, 413, { foto: Array.from({ length: 13 }, (_, i) => ({ percorso: 'foto/f-17901714752' + String(i).padStart(2, '0') + '.jpg', dati: JPEG.toString('base64') })) });
+prova('e dopo tutti questi rifiuti l’archivio è vuoto', (await chiama('GET')).dati.versione === null && !(await archivio().get('parola')));
 
-// 5. descrizione per Google e versione cambiano: sono permessi
-azzera(); ambiente();
-const conDescrizione = PAGINE['index.html']
-  .replace(/(<meta name="description" content=")[^"]*(")/, '$1Nuova descrizione del bar$2')
-  .replace(/(<meta name="versione" content=")[^"]*(")/, '$12026-09-23T10:00:00.000Z$2');
-r = await chiama('POST', { base: BASE, testi: { 'index.html': conDescrizione } });
-prova('la descrizione per Google e la versione si possono cambiare', r.stato === 200, JSON.stringify(r));
+// 6. i testi del proprietario restano i suoi, anche con dentro $1 e $&
+r = await pubblica({ 'index.html': { regioni: { 'scritta formula': 'Spritz a 6$ e $1 e $& e $$' }, descrizione: 'Il bar di via Nazionale &amp; dintorni' } });
+const casa = await (await visita('/', INDEX)).text();
+prova('«$1» e «$&» restano lettere', casa.includes('<!-- @scritta formula -->Spritz a 6$ e $1 e $& e $$<!-- /@scritta -->'), JSON.stringify(r));
+prova('la descrizione per Google cambia', casa.includes('<meta name="description" content="Il bar di via Nazionale &amp; dintorni">'));
 
-// 6. qualcuno ha pubblicato nel frattempo
-azzera(); ambiente(); gh.testa = 'c'.repeat(40);
-r = await chiama('POST', { base: BASE, testi: { 'menu.html': conPrezzo } });
-prova('se il sito è cambiato dopo la lettura: 409, e niente commit', r.stato === 409 && gh.commit.length === 0, JSON.stringify(r));
-azzera(); ambiente(); gh.siMuove = true;
-r = await chiama('POST', { base: BASE, testi: { 'menu.html': conPrezzo } });
-prova('se cambia proprio mentre pubblica: 409, il ramo resta dov’era', r.stato === 409 && gh.testa === BASE, JSON.stringify(r));
+// 7. cambiare la parola d'ordine dalla pagina
+r = await chiama('POST', { azione: 'parola', nuova: 'la-parola-del-bar' });
+prova('si cambia la parola d’ordine', r.stato === 200);
+prova('da lì «admin» non entra più', (await chiama('GET')).stato === 401);
+prova('entra quella nuova', (await chiama('GET', undefined, 'la-parola-del-bar')).stato === 200);
+prova('la parola non sta in chiaro nell’archivio', !JSON.stringify(await archivio().get('parola', { type: 'json' })).includes('la-parola-del-bar'));
+prova('una parola vuota non si mette', (await chiama('POST', { azione: 'parola', nuova: '  ' }, 'la-parola-del-bar')).stato === 400);
+await archivio().setJSON('parola', { ...(await archivio().get('parola', { type: 'json' })), azzera: 0 });
+prova('con AZZERA_PAROLA cambiato torna «admin»', (await chiama('GET')).stato === 200 && (await chiama('GET', undefined, 'la-parola-del-bar')).stato === 401);
 
-// 7. la parola d'ordine non dà il permesso di cambiare tutto
-azzera(); ambiente();
-r = await chiama('POST', { base: BASE, testi: { 'index.html': PAGINE['index.html'].replace('<title>', '<title>Hackerato — ') } });
-prova('fuori dai pezzi modificabili: 422', r.stato === 422 && r.dati.errore === 'fuori-regione', JSON.stringify(r));
-r = await chiama('POST', { base: BASE, testi: { 'menu.html': conPrezzo.replace('<em>12,50</em>', '<em>12,50<script>alert(1)</script></em>') } });
-prova('uno script dentro un pezzo modificabile: 422', r.stato === 422 && r.dati.dettaglio === 'contiene codice', JSON.stringify(r));
-r = await chiama('POST', { base: BASE, testi: { 'menu.html': conPrezzo.replace('<em>12,50</em>', '<em onclick="x()">12,50</em>') } });
-prova('un attributo onclick dentro un pezzo modificabile: 422', r.stato === 422, JSON.stringify(r));
-prova('e in nessuno di questi casi c’è stato un commit', gh.commit.length === 0);
+// 8. se l'archivio non risponde, la home si apre lo stesso
+await azzera();
+await pubblica({ 'menu.html': { regioni: { 'menu pizze': PIZZE_NUOVE } } });
+process.env.NETLIFY_BLOBS_CONTEXT = contesto(1); // una porta dove non risponde nessuno
+prova('archivio giù: la home è quella del repo', (await (await visita('/', INDEX)).text()) === INDEX);
+prova('archivio giù: il menù è quello del repo', (await (await visita('/menu.html', MENU)).text()) === MENU);
+prova('archivio giù: la pagina di modifica lo dice, non pubblica', (await chiama('GET')).stato === 500);
+process.env.NETLIFY_BLOBS_CONTEXT = contesto(port);
+r = await visita('/menu.html', null, { 'content-type': '' });
+prova('una risposta che non è una pagina passa com’è', r.headers.get('etag') === '"statico"');
 
-// 8. file e foto: solo quelli previsti
-azzera(); ambiente();
-r = await chiama('POST', { base: BASE, testi: { 'netlify.toml': 'x' } });
-prova('un file diverso dalle due pagine: 400', r.stato === 400);
-r = await chiama('POST', { base: BASE, foto: [{ percorso: '../admin.js', dati: JPEG }] });
-prova('una foto fuori da assets/img: 400', r.stato === 400);
-r = await chiama('POST', { base: BASE, foto: [{ percorso: 'assets/img/insegna-orari.jpg', dati: JPEG }] });
-prova('una foto col nome di una che c’è già: 400', r.stato === 400);
-r = await chiama('POST', { base: BASE, foto: [{ ...foto(), dati: PNG }] });
-prova('una foto che non è un jpeg: 400', r.stato === 400 && r.dati.errore === 'non-jpeg');
-r = await chiama('POST', { base: BASE, foto: Array.from({ length: 13 }, (_, i) => foto('f-17586200000' + String(i).padStart(2, '0'))) });
-prova('tredici foto insieme: 413', r.stato === 413);
-r = await chiama('POST', { base: BASE });
-prova('niente da pubblicare: 400', r.stato === 400 && r.dati.errore === 'vuota');
-r = await chiama('POST', { base: 'ciao', testi: { 'menu.html': conPrezzo } });
-prova('un commit di partenza che non è uno sha: 400', r.stato === 400);
-prova('e anche qui nessun commit', gh.commit.length === 0);
-
-// 9. la chiave di GitHub scaduta: un errore diverso dalla parola sbagliata
-azzera(); ambiente({ GITHUB_TOKEN: 'scaduto' });
-r = await chiama('GET');
-prova('chiave di GitHub rifiutata: 502, non 401', r.stato === 502 && r.dati.stato === 401, JSON.stringify(r));
-
+await server.stop();
+rmSync(cartella, { recursive: true, force: true });
 console.log('\n' + (rotti ? rotti + ' controlli falliti su ' + fatti : 'Tutti a posto: ' + fatti + ' controlli'));
 process.exit(rotti ? 1 : 0);
