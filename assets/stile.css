@@ -569,3 +569,20 @@ footer .firma img{height:18px;width:auto}
 /* l'ingresso della pagina di modifica: una parola d'ordine, poi l'editor */
 .admin-entra{max-width:420px;display:flex;flex-direction:column;gap:10px;margin:10px 0 30px}
 .admin-entra .btn{align-self:flex-start}
+
+/* ============ AVVISO COOKIE (assets/cookie.js) ============ */
+.cookie{
+  position:fixed;z-index:60;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));
+  max-width:420px;margin-left:auto;
+  padding:18px 20px;border-radius:var(--raggio);
+  background:var(--bianco);color:var(--inchiostro);
+  box-shadow:0 0 0 1px var(--linea),0 18px 40px -18px rgba(23,32,58,.45);
+  font-size:14px;line-height:1.5;
+}
+.cookie div{display:flex;gap:10px;margin-top:14px}
+.cookie button{
+  flex:1;min-height:44px;border-radius:999px;cursor:pointer;
+  font:700 13px/1 "Public Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;
+  border:2px solid var(--blu);background:var(--bianco);color:var(--blu);
+}
+.cookie button[value=accepted]{background:var(--blu);color:var(--bianco)}
