@@ -45,6 +45,16 @@ niente dipendenze. In sviluppo: `python3 -m http.server 8791` dalla radice.
   Il prezzo è scritto anche in testo sotto ogni foto: una locandina fotografata
   non la legge uno screen reader, e su un telefono stretto nemmeno gli altri.
 
+- **Avviso cookie** (dal 30 settembre 2026, chiesto da Nicola per tutti i siti su
+  un dominio loro): `assets/cookie.js`, incluso in fondo a `index.html` e
+  `menu.html` fuori dai pezzi marcati, stile `.cookie` in coda a `stile.css`.
+  Accetta o Rifiuta, la scelta sta in `localStorage` come
+  `fiftynine-cookie-consent` (`accepted` / `rejected`). Il sito non ha cookie di
+  analisi: oggi la scelta non accende niente, e Google Fonts e jsDelivr partono
+  comunque da remoto. Chi aggiunge un'analisi la fa partire solo con `accepted`, e
+  allora servono anche la pagina dell'informativa e un link per riaprire la
+  scelta, che oggi non ci sono.
+
 ## ⚠️ Gli orari non sono una fascia sola
 
 Dalla locandina del locale (`assets/img/insegna-orari.jpg`):
